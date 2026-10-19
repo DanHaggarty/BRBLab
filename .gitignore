@@ -1,0 +1,4 @@
+.env
+data/chroma/
+data/sent_emails.log
+__pycache__/
