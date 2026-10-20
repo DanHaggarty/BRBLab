@@ -103,6 +103,19 @@
   <h2>Limits of the fix</h2>
   <p class="limit"><code>rpm_limit</code> counts requests, not their size. A caller who stays at five a minute can still make each one huge, and keep going all day. Capping what a key can spend is <a href="03-denial-of-wallet.html">lesson 03, Denial of Wallet</a>.</p>
 
+  <h2>In the real world</h2>
+  <div class="realworld">
+    <p><strong>Sourcegraph, August 2023.</strong> An engineer accidentally committed a site-admin access token to Sourcegraph's public code. An outsider used it to make their own account an admin, raised the API rate limits on a handful of accounts, and ran a proxy that gave others free use of Sourcegraph's APIs. The per-user limits were working as designed; an admin credential switched them off. A spike in API usage gave it away.</p>
+    <p class="source">Source: <a href="https://sourcegraph.com/blog/security-update-august-2023">Sourcegraph security update</a></p>
+  </div>
+
+  <h2>Key takeaways</h2>
+  <ul class="takeaways">
+    <li>Give every caller its own key: you can't limit traffic you can't tell apart.</li>
+    <li>Enforce limits at the gateway, so refused requests never reach the model.</li>
+    <li><code>rpm_limit</code> caps how often, not how much. Pair it with a <a href="03-denial-of-wallet.html">budget</a>.</li>
+    <li>Guard whatever can change the limits. In this lab, that's the master key.</li>
+  </ul>
   <h2>Run it yourself</h2>
   <p>You need <a href="https://ollama.com">Ollama</a> and Docker Desktop. The script creates its own keys and deletes them afterwards.</p>
   <pre class="code"><code>git clone https://github.com/DanHaggarty/BRBLab.git

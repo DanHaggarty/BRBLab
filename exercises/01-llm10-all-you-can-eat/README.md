@@ -196,3 +196,20 @@ Invoke-RestMethod http://localhost:4000/key/delete -Method Post -Headers $admin 
 - Remove `max_tokens` from `Body` and ask for a long story. Why does
   `tpm_limit` matter more than `rpm_limit` for cost? (03 · Denial of
   Wallet picks this up.)
+
+## In the real world
+
+**Sourcegraph, August 2023.** An engineer accidentally committed a
+site-admin access token to Sourcegraph's public code. An outsider used it
+to make their own account an admin, raised the API rate limits on a handful
+of accounts, and ran a proxy that gave others free use of Sourcegraph's
+APIs. The per-user limits were working as designed; an admin credential
+switched them off. A spike in API usage gave it away.
+([Sourcegraph's write-up](https://sourcegraph.com/blog/security-update-august-2023))
+
+## Key takeaways
+
+- Give every caller its own key: you can't limit traffic you can't tell apart.
+- Enforce limits at the gateway, so refused requests never reach the model.
+- `rpm_limit` caps how often, not how much. Pair it with a budget (03).
+- Guard whatever can change the limits. In this lab, that's the master key.

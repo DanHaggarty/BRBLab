@@ -93,6 +93,19 @@ embed   embeddings (nomic-embed-text)    turns text into numbers for document se
   <h2>Limits of the fix</h2>
   <p class="limit">Whatever issues keys (a script, a portal, a person) has to set the list every time, because a key without one gets everything. And an allowlist says <em>which</em> models, not <em>how much</em>: pair it with <a href="01-all-you-can-eat.html">rate limits</a> and <a href="03-denial-of-wallet.html">budgets</a>.</p>
 
+  <h2>In the real world</h2>
+  <div class="realworld">
+    <p><strong>LLMjacking, reported by Sysdig in May 2024.</strong> Attackers stole cloud credentials from an unpatched Laravel server, then ran a script that checked which of ten AI services (OpenAI, Anthropic, AWS Bedrock, Azure, Mistral and others) each credential could reach. The checks used deliberately invalid requests, so they learned what a key could call without running up a bill that might get noticed. The access was then sold on, and the victims paid for it. The first question an attacker asks of a stolen key is "what can this reach?"; an allowlist makes the answer "only what the app needed".</p>
+    <p class="source">Source: <a href="https://www.sysdig.com/blog/llmjacking-stolen-cloud-credentials-used-in-new-ai-attack">Sysdig Threat Research</a></p>
+  </div>
+
+  <h2>Key takeaways</h2>
+  <ul class="takeaways">
+    <li>A key with no <code>models</code> list can call every model: the default fails open.</li>
+    <li>Grant each key only the models its app uses.</li>
+    <li>403 means a valid key that isn't allowed. The gateway knows who you are.</li>
+    <li>An allowlist limits <em>which</em> models, not <em>how much</em>: add <a href="01-all-you-can-eat.html">rate limits</a> and <a href="03-denial-of-wallet.html">budgets</a>.</li>
+  </ul>
   <h2>Run it yourself</h2>
   <pre class="code"><code>git clone https://github.com/DanHaggarty/BRBLab.git
 cd BRBLab

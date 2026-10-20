@@ -219,3 +219,22 @@ Invoke-RestMethod http://localhost:4000/key/delete -Method Post -Headers $admin 
   budget be the right choice?
 - Remove `max_tokens = 10` from `Body` and ask for a long answer. How far
   over budget does the final request go now?
+
+## In the real world
+
+**LLMjacking.** Sysdig estimated that a stolen key used up to its quota on
+a Claude model in AWS Bedrock, across several regions, could cost the
+victim **over $46,000 a day**
+([Sysdig](https://www.sysdig.com/blog/llmjacking-stolen-cloud-credentials-used-in-new-ai-attack)).
+In December 2024 Microsoft began legal action against **Storm-2139**, a
+group that used exposed Azure OpenAI keys and resold the access
+([The Hacker News](https://thehackernews.com/2025/02/microsoft-exposes-llmjacking.html)).
+In both cases the attacker uses the service and the key's owner gets the
+bill. A budget on each key turns "unlimited" into a known worst case.
+
+## Key takeaways
+
+- Rate limits cap how often; only a budget caps what a key can cost.
+- Spend is checked before each request, so a budget overshoots by up to one request.
+- Small `max_tokens` and a `tpm_limit` keep that overshoot small.
+- A budget is a backstop: also alert on spend spikes, and rotate leaked keys.

@@ -71,3 +71,16 @@ Write-Field "Baseline" $(if ($chat.Ok) { "qwen-only key called qwen - OK" } else
 Write-Field "Red Team" "key with no models list reached embed" Yellow
 Write-Field "Blue Team" $(if ($pass.Ok) { "qwen-only key reached embed - not blocked" } else { "qwen-only key refused embed with $($pass.Status)" }) Cyan
 Write-Verdict ($chat.Ok -and $open.Ok -and -not $pass.Ok) "key restricted to its allowed models"
+
+Write-Takeaways @'
+LLMjacking, reported by Sysdig in May 2024. Attackers stole cloud credentials
+from an unpatched Laravel server, then ran a script that checked which of ten
+AI services (OpenAI, Anthropic, AWS Bedrock, Azure, Mistral...) each key could
+reach - using deliberately invalid requests, so the checks cost nothing. The
+access they found was sold on, and the victims paid for it.
+'@ @(
+  "A key with no models list can call every model: the default fails open.",
+  "Grant each key only the models its app uses.",
+  "403 means a valid key that isn't allowed - the gateway knows who you are.",
+  "An allowlist limits which models, not how much: add lessons 01 and 03."
+)

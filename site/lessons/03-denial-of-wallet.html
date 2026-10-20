@@ -115,6 +115,19 @@
   <h2>Limits of the fix</h2>
   <p class="limit">Budgets are a backstop, not a precise meter. Pair them with <code>max_tokens</code> on requests, so no single reply can be huge, and <code>tpm_limit</code> on the key, so token volume per minute is capped too.</p>
 
+  <h2>In the real world</h2>
+  <div class="realworld">
+    <p><strong>LLMjacking.</strong> Sysdig estimated that a stolen key used up to its quota on a Claude model in AWS Bedrock, across several regions, could cost the victim <strong>over $46,000 a day</strong>. In December 2024 Microsoft began legal action against <strong>Storm-2139</strong>, a group that used exposed Azure OpenAI keys and resold the access. In both cases the attacker uses the service and the key's owner gets the bill. A budget on each key turns "unlimited" into a known worst case.</p>
+    <p class="source">Sources: <a href="https://www.sysdig.com/blog/llmjacking-stolen-cloud-credentials-used-in-new-ai-attack">Sysdig Threat Research</a> · <a href="https://thehackernews.com/2025/02/microsoft-exposes-llmjacking.html">The Hacker News</a></p>
+  </div>
+
+  <h2>Key takeaways</h2>
+  <ul class="takeaways">
+    <li>Rate limits cap how often; only a budget caps what a key can cost.</li>
+    <li>Spend is checked before each request, so a budget overshoots by up to one request.</li>
+    <li>Small <code>max_tokens</code> and a <code>tpm_limit</code> keep that overshoot small.</li>
+    <li>A budget is a backstop: also alert on spend spikes, and rotate leaked keys.</li>
+  </ul>
   <h2>Run it yourself</h2>
   <pre class="code"><code>git clone https://github.com/DanHaggarty/BRBLab.git
 cd BRBLab

@@ -31,6 +31,9 @@ launcher, the docs and the website without touching anything else.
    key. Don't build lessons on calling Ollama directly (see *Out of scope*).
 8. **Secrets never print.** The master key is always redacted. See *Security
    rules*.
+9. **Close with the real world.** Every lesson ends with one real incident
+   where this control mattered, and three or four key takeaways. See
+   *Real world and takeaways*.
 
 ## The stack
 
@@ -135,6 +138,15 @@ Write-Field "Baseline"  "one line"  Green
 Write-Field "Red Team"  "one line"  Yellow
 Write-Field "Blue Team" "one line"  Cyan
 Write-Verdict ($baselineOk -and $attackWorked -and $defenceHeld) "what PASS means, in a few words"
+
+Write-Takeaways @'
+Incident name, date. Three to five lines on what happened and how this
+lesson's control would have changed it. Single-quoted here-string, so $ is literal.
+'@ @(
+  "Takeaway one - a single line, under ~75 characters.",
+  "Takeaway two.",
+  "Takeaway three."
+)
 ```
 
 ### Helpers in `exercises/_lib/common.ps1`
@@ -156,6 +168,7 @@ Write-Verdict ($baselineOk -and $attackWorked -and $defenceHeld) "what PASS mean
 | `Write-Field $Label $Value $Colour` | Dim label + coloured value. |
 | `Write-Line text colour text colour ...` | Free-form coloured line when nothing above fits. |
 | `Write-Results`, `Write-Verdict $Passed $Text` | Results badge (pauses first), then PASS/FAIL badge. |
+| `Write-Takeaways $RealWorld $Points` | Last thing a lesson prints: pauses, TAKEAWAYS badge, the real-world incident, then one bullet per takeaway. |
 | `Wait-Continue $Next` | Extra pause if a lesson needs one. Skipped automatically when input is redirected or `BRB_NO_PAUSE` is set. |
 | `Hide-Key $Key` | Redaction used by the key helpers. |
 
@@ -167,9 +180,31 @@ lessons, and keep existing helper signatures stable: all lessons use them.
 Labels dim (`DarkGray`) · keys `Yellow` · limits and money `Magenta` ·
 requests `Cyan` · prompts `White` · answers `Cyan` · OK `Green` · BLOCKED
 `Yellow` · error text `DarkYellow` · Threat `Red` · Control `Blue` · Lab
-`Cyan`. Phase badges: Baseline black on `Gray` (white on `DarkGray` is
-unreadable in some themes), Red Team white on `DarkRed`, Blue Team white on
-`DarkBlue`.
+`Cyan` · Real world and takeaway bullets `Magenta`. Phase badges: Baseline
+black on `Gray` (white on `DarkGray` is unreadable in some themes), Red Team
+white on `DarkRed`, Blue Team white on `DarkBlue`. Takeaways white on
+`DarkMagenta`.
+
+### Real world and takeaways
+
+Every lesson closes the same way, in all three places (`run.ps1`,
+`README.md`, the site page), with the same words:
+
+- **In the real world:** one incident where this control, or its absence,
+  mattered. Prefer a real, publicly reported incident; name it, date it, and
+  link the primary source (the victim's own write-up or the researcher's
+  report) in the README and on the site. Only state what the source says:
+  an estimate stays an estimate ("Sysdig estimated..."). If no real incident
+  fits, write a realistic scenario and label it **Scenario:** so nobody
+  mistakes it for reporting. Three to five lines, ending with how this
+  lesson's control changes the outcome.
+- **Key takeaways:** three or four one-line bullets a reader could repeat
+  to a colleague. What to do, not what happened. Include the limit of the
+  fix as one of them where it fits.
+
+Incidents used so far, so new lessons don't repeat them: Sourcegraph token
+leak, Aug 2023 (01); Sysdig LLMjacking, May 2024 (02, 03); Microsoft
+Storm-2139, Dec 2024 (03).
 
 ### Prompts
 
@@ -201,6 +236,8 @@ Sections, in order:
 7. `## What's happening`: the mechanism, ending with **Limits of the fix:**
 8. `## Cleanup`: delete every key the walkthrough created
 9. `## Try next`: two or three experiments
+10. `## In the real world`: the incident, with its source linked
+11. `## Key takeaways`: the same bullets as `run.ps1`
 
 Manual commands read the master key with `Select-String` from `.env` so it
 never lands in shell history.
@@ -210,6 +247,7 @@ never lands in shell history.
 1. Pick the next `NN`, the OWASP item, and a playful name. Check
    `docs/DESIGN.md` for the planned slot.
 2. Create `exercises/NN-<id>-<name>/run.ps1` from the skeleton. Header lines 1-2 set the menu entry.
+   Find the real-world incident now, and check it against its source.
 3. Run it: `powershell -ExecutionPolicy Bypass -File .\lab.ps1 -Run NN`
    (or set `$env:BRB_NO_PAUSE = 1` to skip pauses). It must PASS, and the
    output must tell the story without the README.
@@ -218,7 +256,10 @@ never lands in shell history.
 6. Add the site page: copy a page in `site/lessons/`, paste the real run into
    the terminal block (one `<span>` per line; classes `t-title`, `t-base`,
    `t-red`, `t-blue`, `call`, `t-warn`, `t-pass`; HTML-escape `<`, `>`, `&`;
-   **replace the master key with `sk-*************  (redacted)`**). Turn the
+   **replace the master key with `sk-*************  (redacted)`**). After
+   *Limits of the fix*, add *In the real world* (`<div class="realworld">`
+   with a `<p class="source">` link) and *Key takeaways*
+   (`<ul class="takeaways">`), before *Run it yourself*. Turn the
    lesson's "Coming soon" card on `site/index.html` into a link, update the
    prev/next links, and add the URL to `site/sitemap.xml`.
 7. Re-run lessons that share anything you changed in `common.ps1`.

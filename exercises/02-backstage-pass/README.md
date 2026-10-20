@@ -177,3 +177,23 @@ Invoke-RestMethod http://localhost:4000/key/delete -Method Post -Headers $admin 
 - Ask for a model alias that doesn't exist at all, such as `gpt-5`. Is
   the error different from the Blue Team step? Why might a gateway
   deliberately not tell you whether a model exists?
+
+## In the real world
+
+**LLMjacking, reported by Sysdig in May 2024.** Attackers stole cloud
+credentials from an unpatched Laravel server, then ran a script that
+checked which of ten AI services (OpenAI, Anthropic, AWS Bedrock, Azure,
+Mistral and others) each credential could reach. The checks used
+deliberately invalid requests, so they learned what a key could call
+without running up a bill that might get noticed. The access was then sold
+on, and the victims paid for it. The first question an attacker asks of a
+stolen key is "what can this reach?"; an allowlist makes the answer "only
+what the app needed".
+([Sysdig's write-up](https://www.sysdig.com/blog/llmjacking-stolen-cloud-credentials-used-in-new-ai-attack))
+
+## Key takeaways
+
+- A key with no `models` list can call every model: the default fails open.
+- Grant each key only the models its app uses.
+- 403 means a valid key that isn't allowed. The gateway knows who you are.
+- An allowlist limits *which* models, not *how much*: add 01 and 03.

@@ -196,3 +196,13 @@ function Write-Verdict($Passed, $Text) {
   if ($Passed) { Write-Badge "PASS" DarkGreen $Text Green }
   else         { Write-Badge "FAIL" DarkRed $Text Red }
 }
+
+# Closes a lesson: a real incident where this control mattered, then the key points.
+function Write-Takeaways($RealWorld, [string[]]$Points) {
+  Wait-Continue "the takeaways"
+  Write-Badge "TAKEAWAYS" DarkMagenta "" Magenta
+  Write-Section "Real world" Magenta $RealWorld
+  Write-Host ""
+  foreach ($p in $Points) { Write-Line "   * " Magenta $p Gray }
+  Write-Host ""
+}

@@ -66,3 +66,15 @@ Write-Field "Baseline" $(if ($baseline.Ok) { "OK - the limit didn't get in the w
 Write-Field "Red Team" "$redOk/$Burst got through - nothing limited the master key" Yellow
 Write-Field "Blue Team" "$blueOk/$Burst got through, $blue429 refused with 429 before reaching the model" Cyan
 Write-Verdict ($baseline.Ok -and ($redOk -eq $Burst) -and ($blue429 -ge 1) -and ($blueOk -le $RpmLimit)) "rate limit enforced at the gateway"
+
+Write-Takeaways @'
+Sourcegraph, August 2023. An engineer accidentally committed a site-admin
+token to public code. An outsider used it to make their own account an admin,
+raised the API rate limits on a handful of accounts, and ran a proxy that gave
+others free use of Sourcegraph's APIs. A spike in API usage gave it away.
+'@ @(
+  "Give every caller its own key: you can't limit traffic you can't tell apart.",
+  "Enforce limits at the gateway, so refused requests never reach the model.",
+  "rpm_limit caps how often, not how much - pair it with a budget (lesson 03).",
+  "Guard whatever can change the limits. Here, that's the master key."
+)

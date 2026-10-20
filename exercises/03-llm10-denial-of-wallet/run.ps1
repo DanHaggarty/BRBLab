@@ -93,3 +93,16 @@ Write-Field "Red Team" ("{0}/{1} got through, `${2:N6} with no ceiling" -f $redO
 Write-Field "Blue Team" $(if ($blockedAt) { "refused at request $blockedAt" } else { "never refused" }) Cyan
 Write-Field "spend" ("`${0:N6} of a `${1:N6} budget ({2:N0}%) - the request that crossed the line still ran" -f $spend, $Budget, (100 * $spend / $Budget)) Magenta
 Write-Verdict ($baseline.Ok -and ($redOk -eq $RedRequests) -and ($null -ne $blockedAt)) "budget enforced at the gateway"
+
+Write-Takeaways @'
+LLMjacking. Sysdig estimated that a stolen key used to its quota on a Claude
+model in AWS Bedrock, across several regions, could cost the victim over
+$46,000 a day. In December 2024 Microsoft took legal action against Storm-2139,
+a group that used exposed Azure OpenAI keys and resold the access. In both
+cases the attacker uses the service and the key's owner gets the bill.
+'@ @(
+  "Rate limits cap how often; only a budget caps what a key can cost.",
+  "Spend is checked before each request, so a budget overshoots by up to one.",
+  "Small max_tokens and a tpm_limit keep that overshoot small.",
+  "A budget is a backstop: also alert on spend spikes, and rotate leaked keys."
+)

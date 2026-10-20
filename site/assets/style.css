@@ -110,6 +110,11 @@ a.card:hover { border-color: var(--accent); }
 .findings { list-style: none; padding: 0; margin: 16px 0; display: grid; gap: 10px; }
 .findings li { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 6px; padding: 12px 14px; }
 .limit { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--amber); border-radius: 6px; padding: 12px 14px; }
+.realworld { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--red); border-radius: 6px; padding: 4px 14px; }
+.realworld .source { font-size: 14px; color: var(--muted); margin-top: -4px; }
+.takeaways { padding-left: 22px; }
+.takeaways li { margin: 6px 0; }
+.takeaways li::marker { color: var(--accent); }
 
 /* Terminal replay */
 .terminal { background: var(--term-bg); border-radius: var(--radius); margin: 20px 0; overflow: hidden; box-shadow: 0 1px 0 rgba(0,0,0,0.04), 0 12px 32px -16px rgba(0,0,0,0.35); }
