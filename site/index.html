@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BRB Lab: hands-on LLM security labs (OWASP Top 10 for LLMs)</title>
+<meta name="description" content="Break and fix a real LLM gateway. Hands-on Baseline, Red Team and Blue Team lessons for the OWASP Top 10 for LLM Applications: rate limits, model allowlists and spend caps with LiteLLM and Ollama.">
+<link rel="canonical" href="https://danhaggarty.github.io/BRBLab/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="BRB Lab: hands-on LLM security labs">
+<meta property="og:description" content="Attack a real LLM gateway, switch the defence on, and watch the same attack fail. Recorded runs, real output, open source.">
+<meta property="og:url" content="https://danhaggarty.github.io/BRBLab/">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="./">BRB Lab <span>· Baseline · Red · Blue</span></a>
+    <nav><a href="#lessons">Lessons</a><a href="https://github.com/DanHaggarty/BRBLab">GitHub</a></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="eyebrow">Hands-on LLM security</p>
+  <h1>Be right back, just breaking my own AI.</h1>
+  <p class="lede">Short, practical lessons that attack a real LLM gateway, switch a defence on, and run the same attack again. Every result on this site is recorded output from an actual run, not a mock-up.</p>
+  <div class="actions">
+    <a class="btn" href="lessons/01-all-you-can-eat.html">Start with lesson 01</a>
+    <a class="btn ghost" href="https://github.com/DanHaggarty/BRBLab">Run it yourself</a>
+  </div>
+
+  <h2>Every lesson, three phases</h2>
+  <div class="phases">
+    <div class="phase baseline"><b>Baseline</b><p>Use the feature normally and see what "working" looks like.</p></div>
+    <div class="phase red"><b>Red Team</b><p>Attack it and watch the attack succeed.</p></div>
+    <div class="phase blue"><b>Blue Team</b><p>Switch the defence on, repeat the attack, and see where the fix still falls short.</p></div>
+  </div>
+
+  <h2 id="lessons">Lessons</h2>
+  <p>Mapped to the <a href="https://genai.owasp.org/llm-top-10/">OWASP Top 10 for LLM Applications (2025)</a>.</p>
+  <div class="cards">
+    <a class="card" href="lessons/01-all-you-can-eat.html">
+      <span class="num">01 · OWASP LLM10</span>
+      <h3>All You Can Eat</h3>
+      <p>One caller floods the model. A per-key rate limit answers HTTP 429 before the model is ever called.</p>
+      <span class="tag">Rate limits</span>
+    </a>
+    <a class="card" href="lessons/02-backstage-pass.html">
+      <span class="num">02 · OWASP LLM10</span>
+      <h3>Backstage Pass</h3>
+      <p>An app key with no allowlist reaches every model on the gateway. One line in the key fixes it.</p>
+      <span class="tag">Model allowlists · access controls</span>
+    </a>
+    <a class="card" href="lessons/03-denial-of-wallet.html">
+      <span class="num">03 · OWASP LLM10</span>
+      <h3>Denial of Wallet</h3>
+      <p>Rate limits don't cap cost. A per-key budget does, and it overshoots by exactly one request.</p>
+      <span class="tag">Spend caps</span>
+    </a>
+    <div class="card soon">
+      <span class="num">04 · OWASP LLM01</span>
+      <h3>Simon Says</h3>
+      <p>Prompt injection, typed directly and hidden inside documents.</p>
+      <span class="tag">Coming soon</span>
+    </div>
+    <div class="card soon">
+      <span class="num">05 · OWASP LLM07</span>
+      <h3>Loose Lips</h3>
+      <p>The bot recites its system prompt, and the secret inside it.</p>
+      <span class="tag">Coming soon</span>
+    </div>
+    <div class="card soon">
+      <span class="num">06 · OWASP LLM02</span>
+      <h3>Overshare</h3>
+      <p>A crafted question pulls salary data out of a document search.</p>
+      <span class="tag">Coming soon</span>
+    </div>
+    <div class="card soon">
+      <span class="num">07 · OWASP LLM06</span>
+      <h3>You've Got Mail</h3>
+      <p>A poisoned document makes the bot email an attacker.</p>
+      <span class="tag">Coming soon</span>
+    </div>
+    <div class="card soon">
+      <span class="num">08 · OWASP LLM05</span>
+      <h3>Ghost in the Markup</h3>
+      <p>The model's reply runs script in your browser.</p>
+      <span class="tag">Coming soon</span>
+    </div>
+  </div>
+
+  <h2>What's in the lab</h2>
+  <p>Everything runs on one machine: <a href="https://ollama.com">Ollama</a> serves the models (<code>qwen2.5:7b</code> for chat, <code>nomic-embed-text</code> for embeddings) and a <a href="https://github.com/BerriAI/litellm">LiteLLM</a> gateway sits in front with per-caller virtual keys, rate limits, model allowlists and budgets, backed by Postgres. Each lesson comes as a manual walkthrough and an automated script that prints a PASS or FAIL verdict.</p>
+  <pre class="code"><code>git clone https://github.com/DanHaggarty/BRBLab.git
+cd BRBLab
+powershell -ExecutionPolicy Bypass -File .\setup.ps1
+powershell -ExecutionPolicy Bypass -File .\exercises\01-llm10-all-you-can-eat\run.ps1</code></pre>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">BRB Lab is open source on <a href="https://github.com/DanHaggarty/BRBLab">GitHub</a>. The lab is intentionally vulnerable: run it on your own machine, bound to 127.0.0.1.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LLM rate limiting per API key with LiteLLM (OWASP LLM10) | BRB Lab 01</title>
+<meta name="description" content="OWASP LLM10 Unbounded Consumption, hands-on: flood a model with requests, then add a per-key rpm_limit in LiteLLM and watch requests 6 to 8 get HTTP 429 without ever reaching the model. Real recorded output.">
+<link rel="canonical" href="https://danhaggarty.github.io/BRBLab/lessons/01-all-you-can-eat.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="All You Can Eat: per-key LLM rate limits (OWASP LLM10)">
+<meta property="og:description" content="Flood a model, add rpm_limit to the key, watch the gateway answer 429 before the model is called.">
+<meta property="og:url" content="https://danhaggarty.github.io/BRBLab/lessons/01-all-you-can-eat.html">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="../">BRB Lab <span>· Baseline · Red · Blue</span></a>
+    <nav><a href="../#lessons">Lessons</a><a href="https://github.com/DanHaggarty/BRBLab">GitHub</a></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="eyebrow">Lesson 01 · OWASP LLM10: Unbounded Consumption</p>
+  <h1>All You Can Eat</h1>
+  <p class="lede">Per-key rate limits for an LLM API. One caller floods the model; a limit on their key stops the excess at the gateway, before the model spends a single cycle on it.</p>
+
+  <h2>The threat</h2>
+  <p>An LLM endpoint with no per-caller limits is an all-you-can-eat buffet. A single client, whether a buggy loop, a scraper or an attacker, can send unlimited requests. On a paid API every one of them is billed. On a CPU-only machine like this lab, one caller keeps the model busy and everyone else waits.</p>
+
+  <h2>The control</h2>
+  <p>A LiteLLM <strong>virtual key</strong>: a per-caller API key stored in Postgres with its own limits. This lesson uses <code>rpm_limit</code>, a maximum number of requests per minute. One plate each.</p>
+  <pre class="code"><code>POST /key/generate   (authorised with the master key)
+{"key_alias":"ex01-blue","models":["qwen"],"rpm_limit":5}</code></pre>
+
+  <h2>Watch it run</h2>
+  <p>The same burst of eight questions, sent twice: first with the master key, which has no limits, then with a key limited to five requests a minute. Each request asks about the robot or AI in a different film, so you can follow every call.</p>
+  <div class="terminal">
+    <div class="terminal-bar"><span class="dots"><i></i><i></i><i></i></span><span class="terminal-title">exercises\01-llm10-all-you-can-eat\run.ps1</span><button type="button">Replay</button></div>
+<pre><span class="k-dim">==============================================================================</span>
+<span><span class="k-white">  01 - All You Can Eat</span><span class="k-dim">   OWASP LLM10: Unbounded Consumption</span></span>
+<span class="k-dim">==============================================================================</span>
+<span> </span>
+<span class="t-base"><span class="badge b-base"> BASELINE </span>  one normal request with a rate-limited key</span>
+<span> </span>
+<span><span class="k-dim">   request   </span><span class="k-cyan">POST /v1/chat/completions</span><span class="k-teal">  (model=qwen, max_tokens=10)</span></span>
+<span><span class="k-dim">   prompt    </span><span class="k-white">&quot;Who is the robot or AI in the film &#39;2001: A Space Odyssey&#39;? Reply with the name only.&quot;</span></span>
+<span> </span>
+<span class="call"><span class="k-dim">     </span><span class="k-ok">OK       </span><span class="k-dim"> 13.8s  </span><span class="k-white">2001: A Space Odyssey </span><span class="k-dim"> -&gt; </span><span class="k-cyan">HAL 9000     </span><span class="k-mag"></span></span>
+<span> </span>
+<span class="t-red"><span class="badge b-red"> RED TEAM </span>  8-request burst with the master key (no limits)</span>
+<span> </span>
+<span><span class="k-dim">   key       </span><span class="k-yel">sk-*************  (redacted)</span></span>
+<span><span class="k-dim">   made by   </span>no API call - it&#39;s the LITELLM_MASTER_KEY=... line in .env, loaded when LiteLLM starts</span>
+<span><span class="k-dim">   limits    </span><span class="k-mag">none - any model, no rate limit, no budget</span></span>
+<span><span class="k-dim">   request   </span><span class="k-cyan">POST /v1/chat/completions</span><span class="k-teal">  (model=qwen, max_tokens=10)</span></span>
+<span><span class="k-dim">   prompt    </span><span class="k-white">&quot;Who is the robot or AI in the film &#39;&lt;film&gt;&#39;? Reply with the name only.&quot;</span></span>
+<span> </span>
+<span class="call"><span class="k-dim">   1 </span><span class="k-ok">OK       </span><span class="k-dim">  1.3s  </span><span class="k-white">2001: A Space Odyssey </span><span class="k-dim"> -&gt; </span><span class="k-cyan">HAL 9000     </span><span class="k-mag"></span></span>
+<span class="call"><span class="k-dim">   2 </span><span class="k-ok">OK       </span><span class="k-dim">  1.8s  </span><span class="k-white">Star Wars             </span><span class="k-dim"> -&gt; </span><span class="k-cyan">R2-D2        </span><span class="k-mag"></span></span>
+<span class="call"><span class="k-dim">   3 </span><span class="k-ok">OK       </span><span class="k-dim">  1.6s  </span><span class="k-white">Interstellar          </span><span class="k-dim"> -&gt; </span><span class="k-cyan">TARS         </span><span class="k-mag"></span></span>
+<span class="call"><span class="k-dim">   4 </span><span class="k-ok">OK       </span><span class="k-dim">  1.7s  </span><span class="k-white">Iron Man              </span><span class="k-dim"> -&gt; </span><span class="k-cyan">JARVIS       </span><span class="k-mag"></span></span>
+<span class="call"><span class="k-dim">   5 </span><span class="k-ok">OK       </span><span class="k-dim">  1.7s  </span><span class="k-white">WALL-E                </span><span class="k-dim"> -&gt; </span><span class="k-cyan">WALL-E       </span><span class="k-mag"></span></span>
+<span class="call"><span class="k-dim">   6 </span><span class="k-ok">OK       </span><span class="k-dim">  1.4s  </span><span class="k-white">Big Hero 6            </span><span class="k-dim"> -&gt; </span><span class="k-cyan">Baymax       </span><span class="k-mag"></span></span>
+<span class="call"><span class="k-dim">   7 </span><span class="k-ok">OK       </span><span class="k-dim">  1.5s  </span><span class="k-white">Short Circuit         </span><span class="k-dim"> -&gt; </span><span class="k-cyan">Number Five  </span><span class="k-mag"></span></span>
+<span class="call"><span class="k-dim">   8 </span><span class="k-ok">OK       </span><span class="k-dim">  1.3s  </span><span class="k-white">Alien                 </span><span class="k-dim"> -&gt; </span><span class="k-cyan">Ash          </span><span class="k-mag"></span></span>
+<span> </span>
+<span class="t-blue"><span class="badge b-blue"> BLUE TEAM </span>  same burst with a fresh key, rpm_limit=5</span>
+<span> </span>
+<span><span class="k-dim">   key       </span><span class="k-yel">sk-FI****************wn1w</span></span>
+<span><span class="k-dim">   made by   </span>Invoke-RestMethod http://127.0.0.1:4000/key/generate -Method Post -Headers @{ Authorization = &quot;Bearer &lt;master key&gt;&quot; } -ContentType &#39;application/json&#39; -Body &#39;{&quot;key_alias&quot;:&quot;ex01-blue-224735&quot;,&quot;models&quot;:[&quot;qwen&quot;],&quot;rpm_limit&quot;:5}&#39;</span>
+<span><span class="k-dim">   limits    </span><span class="k-mag">models=qwen, rpm_limit=5</span></span>
+<span><span class="k-dim">   request   </span><span class="k-cyan">POST /v1/chat/completions</span><span class="k-teal">  (model=qwen, max_tokens=10)</span></span>
+<span><span class="k-dim">   prompt    </span><span class="k-white">&quot;Who is the robot or AI in the film &#39;&lt;film&gt;&#39;? Reply with the name only.&quot;</span></span>
+<span> </span>
+<span class="call"><span class="k-dim">   1 </span><span class="k-ok">OK       </span><span class="k-dim">  2.5s  </span><span class="k-white">2001: A Space Odyssey </span><span class="k-dim"> -&gt; </span><span class="k-cyan">HAL 9000     </span><span class="k-mag"></span></span>
+<span class="call"><span class="k-dim">   2 </span><span class="k-ok">OK       </span><span class="k-dim">  1.8s  </span><span class="k-white">Star Wars             </span><span class="k-dim"> -&gt; </span><span class="k-cyan">R2-D2        </span><span class="k-mag"></span></span>
+<span class="call"><span class="k-dim">   3 </span><span class="k-ok">OK       </span><span class="k-dim">  1.5s  </span><span class="k-white">Interstellar          </span><span class="k-dim"> -&gt; </span><span class="k-cyan">TARS         </span><span class="k-mag"></span></span>
+<span class="call"><span class="k-dim">   4 </span><span class="k-ok">OK       </span><span class="k-dim">  2.3s  </span><span class="k-white">Iron Man              </span><span class="k-dim"> -&gt; </span><span class="k-cyan">J.A.R.V.I.S. </span><span class="k-mag"></span></span>
+<span class="call"><span class="k-dim">   5 </span><span class="k-ok">OK       </span><span class="k-dim">  1.7s  </span><span class="k-white">WALL-E                </span><span class="k-dim"> -&gt; </span><span class="k-cyan">WALL-E       </span><span class="k-mag"></span></span>
+<span class="t-warn"><span class="k-dim">   6 </span><span class="k-warn">BLOCKED  </span><span class="k-warn">429     </span><span class="k-white">Big Hero 6            </span><span class="k-dim"> -&gt; </span><span class="k-err">Rate limit exceeded for api_key: 02e6704302...de9e. Limit type: requests. Current limit: 5, Remaining: 0.</span></span>
+<span class="t-warn"><span class="k-dim">   7 </span><span class="k-warn">BLOCKED  </span><span class="k-warn">429     </span><span class="k-white">Short Circuit         </span><span class="k-dim"> -&gt; </span><span class="k-err">Rate limit exceeded for api_key: 02e6704302...de9e. Limit type: requests. Current limit: 5, Remaining: 0.</span></span>
+<span class="t-warn"><span class="k-dim">   8 </span><span class="k-warn">BLOCKED  </span><span class="k-warn">429     </span><span class="k-white">Alien                 </span><span class="k-dim"> -&gt; </span><span class="k-err">Rate limit exceeded for api_key: 02e6704302...de9e. Limit type: requests. Current limit: 5, Remaining: 0.</span></span>
+<span> </span>
+<span class="t-res"><span class="badge b-res"> RESULTS </span></span>
+<span> </span>
+<span><span class="k-dim">   Baseline  </span><span class="k-ok">OK - the limit didn&#39;t get in the way</span></span>
+<span><span class="k-dim">   Red Team  </span><span class="k-warn">8/8 got through - nothing limited the master key</span></span>
+<span><span class="k-dim">   Blue Team </span><span class="k-cyan">5/8 got through, 3 refused with 429 before reaching the model</span></span>
+<span> </span>
+<span class="t-pass"><span class="badge b-pass"> PASS </span>  rate limit enforced at the gateway</span></pre>
+  </div>
+  <p class="caption">Recorded on a CPU-only Windows PC: Ollama with qwen2.5:7b behind a LiteLLM gateway. Timings are real; the first call includes loading the model.</p>
+
+  <h2>What we measured</h2>
+  <ul class="findings">
+    <li><strong>Blocked requests never reach the model.</strong> Requests 6 to 8 came back instantly: LiteLLM answers 429 itself, so Baymax, Number 5 and Ash were never asked about. The limit saves compute, not just a log entry.</li>
+    <li><strong>Limits don't get in the way of normal use.</strong> The limited key behaved exactly like the master key for its first five requests.</li>
+    <li><strong>The error names a hash, not the key.</strong> <code>02e6704302...de9e</code> is a SHA-256 hash of the key. LiteLLM stores only the hash, so the database never holds a usable key.</li>
+  </ul>
+
+  <h2>Limits of the fix</h2>
+  <p class="limit"><code>rpm_limit</code> counts requests, not their size. A caller who stays at five a minute can still make each one huge, and keep going all day. Capping what a key can spend is <a href="03-denial-of-wallet.html">lesson 03, Denial of Wallet</a>.</p>
+
+  <h2>Run it yourself</h2>
+  <p>You need <a href="https://ollama.com">Ollama</a> and Docker Desktop. The script creates its own keys and deletes them afterwards.</p>
+  <pre class="code"><code>git clone https://github.com/DanHaggarty/BRBLab.git
+cd BRBLab
+powershell -ExecutionPolicy Bypass -File .\setup.ps1
+powershell -ExecutionPolicy Bypass -File .\exercises\01-llm10-all-you-can-eat\run.ps1</code></pre>
+  <p>Prefer to see each step? Follow the <a href="https://github.com/DanHaggarty/BRBLab/blob/main/exercises/01-llm10-all-you-can-eat/README.md">manual walkthrough</a>, which explains every command.</p>
+
+  <nav class="pager">
+    <a href="../"><small>Back to</small>All lessons</a>
+    <a class="next" href="02-backstage-pass.html"><small>Next</small>02 · Backstage Pass</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">BRB Lab is open source on <a href="https://github.com/DanHaggarty/BRBLab">GitHub</a>. The lab is intentionally vulnerable: run it on your own machine, bound to 127.0.0.1.</div>
+</footer>
+<script src="../assets/replay.js"></script>
+</body>
+</html>

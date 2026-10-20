@@ -119,7 +119,7 @@ $h = @{ Authorization = "Bearer <your LITELLM_MASTER_KEY>" }
 | # | Lesson | OWASP | The exploit | The defence | Status |
 |---|---|---|---|---|---|
 | 01 | [**All You Can Eat**](exercises/01-llm10-all-you-can-eat/) | LLM10 | One caller floods the model | Per-key rate limit (`rpm_limit`) | ✅ |
-| 02 | [**Backstage Pass**](exercises/02-backstage-pass/) | — | An over-privileged key reaches every model | Per-key model allowlist | ✅ |
+| 02 | [**Backstage Pass**](exercises/02-backstage-pass/) | LLM10 (access controls) | An over-privileged key reaches every model | Per-key model allowlist | ✅ |
 | 03 | [**Denial of Wallet**](exercises/03-llm10-denial-of-wallet/) | LLM10 | Unbounded spend | Per-key `max_budget` | ✅ |
 | 04 | **Simon Says** | LLM01 | Prompt injection, direct and hidden in documents | Untrusted-content delimiters, instruction hierarchy | planned |
 | 05 | **Loose Lips** | LLM07 | The bot recites its system prompt and its secret | Keep secrets out of prompts; output scanning | planned |
@@ -135,7 +135,15 @@ Every lesson is a folder with two files:
 | `run.ps1` | **Prove**: the automated version, printing each phase and a PASS/FAIL verdict |
 
 Folder names are `<order>-<owasp-id>-<lesson-name>`; a lesson that isn't an
-OWASP item drops the ID. Run one from the repo root:
+OWASP item drops the ID. The easiest way in is the launcher, which
+introduces the lab, checks Ollama and the gateway are up, and lets you
+pick an exercise:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\lab.ps1
+```
+
+Or run one directly from the repo root:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\exercises\01-llm10-all-you-can-eat\run.ps1

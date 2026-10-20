@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Least privilege for LLM API keys: model allowlists in LiteLLM (OWASP LLM10) | BRB Lab 02</title>
+<meta name="description" content="OWASP LLM10 access controls, hands-on: least privilege for LLM API keys. A LiteLLM virtual key with no models list can call every model on the gateway. Add a models allowlist and the same request gets HTTP 403. Real recorded output.">
+<link rel="canonical" href="https://danhaggarty.github.io/BRBLab/lessons/02-backstage-pass.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Backstage Pass: least privilege for LLM API keys">
+<meta property="og:description" content="Two keys, one difference: a models allowlist. One reaches every model, the other gets 403.">
+<meta property="og:url" content="https://danhaggarty.github.io/BRBLab/lessons/02-backstage-pass.html">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="../">BRB Lab <span>· Baseline · Red · Blue</span></a>
+    <nav><a href="../#lessons">Lessons</a><a href="https://github.com/DanHaggarty/BRBLab">GitHub</a></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="eyebrow">Lesson 02 · OWASP LLM10: access controls</p>
+  <h1>Backstage Pass</h1>
+  <p class="lede">Per-key model allowlists. Two app keys that differ by a single line: one can reach every model on the gateway, the other only the model its app needs.</p>
+
+  <h2>The threat</h2>
+  <p>A key that opens every door is worth more to an attacker than it needs to be. If a chat app's key leaks and it can also call every other model on the gateway, the damage is everything the gateway can do.</p>
+
+  <h2>The control</h2>
+  <p><strong>Least privilege</strong>: each credential gets only the access its job needs. On a LiteLLM virtual key that's the <code>models</code> list. Like a backstage pass, it gets you exactly where it says, and a request for any model not on the list is refused at the gateway.</p>
+  <p>OWASP has no separate Top 10 item for over-privileged keys. This is one of the mitigations listed under <a href="https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/">LLM10: Unbounded Consumption</a>: <em>"Implement strong access controls, including role-based access control (RBAC) and the principle of least privilege."</em></p>
+
+  <h3>The models in this lab</h3>
+  <p>The gateway serves two model aliases. A chat app needs only the first.</p>
+  <pre class="code"><code>qwen    chat (qwen2.5:7b)                 what a chat app needs
+embed   embeddings (nomic-embed-text)    turns text into numbers for document search</code></pre>
+  <p>The Red Team key is created <strong>without</strong> a <code>models</code> list, and LiteLLM treats that as "every model on the gateway". The Blue Team key lists only <code>qwen</code>.</p>
+
+  <h2>Watch it run</h2>
+  <div class="terminal">
+    <div class="terminal-bar"><span class="dots"><i></i><i></i><i></i></span><span class="terminal-title">exercises\02-backstage-pass\run.ps1</span><button type="button">Replay</button></div>
+<pre><span class="k-dim">==============================================================================</span>
+<span><span class="k-white">  02 - Backstage Pass</span><span class="k-dim">   OWASP LLM10: Unbounded Consumption (access controls)</span></span>
+<span class="k-dim">==============================================================================</span>
+<span> </span>
+<span class="t-base"><span class="badge b-base"> BASELINE </span>  qwen-only key uses its allowed model</span>
+<span> </span>
+<span><span class="k-dim">   request   </span><span class="k-cyan">POST /v1/chat/completions</span><span class="k-teal">  (model=qwen, max_tokens=10)</span></span>
+<span><span class="k-dim">   prompt    </span><span class="k-white">&quot;Who is the robot or AI in the film &#39;2001: A Space Odyssey&#39;? Reply with the name only.&quot;</span></span>
+<span> </span>
+<span class="call"><span class="k-dim">     </span><span class="k-ok">OK       </span><span class="k-dim">  2.1s  </span><span class="k-white">2001: A Space Odyssey </span><span class="k-dim"> -&gt; </span><span class="k-cyan">HAL 9000     </span><span class="k-mag"></span></span>
+<span> </span>
+<span class="t-red"><span class="badge b-red"> RED TEAM </span>  an app key with no model allowlist tries the embed model</span>
+<span> </span>
+<span><span class="k-dim">   key       </span><span class="k-yel">sk-lC****************ehVw</span></span>
+<span><span class="k-dim">   made by   </span>Invoke-RestMethod http://127.0.0.1:4000/key/generate -Method Post -Headers @{ Authorization = &quot;Bearer &lt;master key&gt;&quot; } -ContentType &#39;application/json&#39; -Body &#39;{&quot;key_alias&quot;:&quot;ex02-open-224826&quot;}&#39;</span>
+<span><span class="k-dim">   limits    </span><span class="k-mag">none set - LiteLLM lets the key call every model</span></span>
+<span><span class="k-dim">   request   </span><span class="k-cyan">POST /v1/embeddings</span><span class="k-teal">  (model=embed)</span></span>
+<span><span class="k-dim">   input     </span><span class="k-white">&quot;hello world&quot;</span></span>
+<span> </span>
+<span class="call"><span class="k-dim">   result    </span><span class="k-ok">OK </span>- embedding returned (768 numbers)</span>
+<span> </span>
+<span class="t-blue"><span class="badge b-blue"> BLUE TEAM </span>  the same kind of key, with models=[&quot;qwen&quot;], tries the embed model</span>
+<span> </span>
+<span><span class="k-dim">   key       </span><span class="k-yel">sk-Ds****************oHMQ</span></span>
+<span><span class="k-dim">   made by   </span>Invoke-RestMethod http://127.0.0.1:4000/key/generate -Method Post -Headers @{ Authorization = &quot;Bearer &lt;master key&gt;&quot; } -ContentType &#39;application/json&#39; -Body &#39;{&quot;key_alias&quot;:&quot;ex02-pass-224827&quot;,&quot;models&quot;:[&quot;qwen&quot;]}&#39;</span>
+<span><span class="k-dim">   limits    </span><span class="k-mag">models=qwen only - no embed</span></span>
+<span><span class="k-dim">   request   </span><span class="k-cyan">POST /v1/embeddings</span><span class="k-teal">  (model=embed)</span></span>
+<span><span class="k-dim">   input     </span><span class="k-white">&quot;hello world&quot;</span></span>
+<span> </span>
+<span class="t-warn"><span class="k-dim">   result    </span><span class="k-warn">BLOCKED 403 </span><span class="k-err">The requested model &#39;embed&#39; is not available for this API key, or the model name is invalid. Check the models available to you and try again.</span></span>
+<span> </span>
+<span class="t-res"><span class="badge b-res"> RESULTS </span></span>
+<span> </span>
+<span><span class="k-dim">   Baseline  </span><span class="k-ok">qwen-only key called qwen - OK</span></span>
+<span><span class="k-dim">   Red Team  </span><span class="k-warn">key with no models list reached embed</span></span>
+<span><span class="k-dim">   Blue Team </span><span class="k-cyan">qwen-only key refused embed with 403</span></span>
+<span> </span>
+<span class="t-pass"><span class="badge b-pass"> PASS </span>  key restricted to its allowed models</span></pre>
+  </div>
+  <p class="caption">Recorded on a CPU-only Windows PC: Ollama behind a LiteLLM gateway. Compare the two <code>made by</code> lines: the only difference is <code>"models":["qwen"]</code>.</p>
+
+  <h2>What we measured</h2>
+  <ul class="findings">
+    <li><strong>The default is open.</strong> Nobody granted the first key access to <code>embed</code>, and nobody took it away either. Leaving out the <code>models</code> list is the easy mistake, and it fails open.</li>
+    <li><strong>403, not 401.</strong> 401 means "I don't know who you are". 403 means "I know who you are, and you're not allowed this". The key was valid, just not permitted for <code>embed</code>.</li>
+    <li><strong>Aliases make it maintainable.</strong> Callers ask for <code>embed</code>, not <code>ollama/nomic-embed-text</code>, so the real model behind an alias can change without rewriting any keys.</li>
+  </ul>
+
+  <h2>Limits of the fix</h2>
+  <p class="limit">Whatever issues keys (a script, a portal, a person) has to set the list every time, because a key without one gets everything. And an allowlist says <em>which</em> models, not <em>how much</em>: pair it with <a href="01-all-you-can-eat.html">rate limits</a> and <a href="03-denial-of-wallet.html">budgets</a>.</p>
+
+  <h2>Run it yourself</h2>
+  <pre class="code"><code>git clone https://github.com/DanHaggarty/BRBLab.git
+cd BRBLab
+powershell -ExecutionPolicy Bypass -File .\setup.ps1
+powershell -ExecutionPolicy Bypass -File .\exercises\02-backstage-pass\run.ps1</code></pre>
+  <p>Or follow the <a href="https://github.com/DanHaggarty/BRBLab/blob/main/exercises/02-backstage-pass/README.md">manual walkthrough</a>.</p>
+
+  <nav class="pager">
+    <a href="01-all-you-can-eat.html"><small>Previous</small>01 · All You Can Eat</a>
+    <a class="next" href="03-denial-of-wallet.html"><small>Next</small>03 · Denial of Wallet</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">BRB Lab is open source on <a href="https://github.com/DanHaggarty/BRBLab">GitHub</a>. The lab is intentionally vulnerable: run it on your own machine, bound to 127.0.0.1.</div>
+</footer>
+<script src="../assets/replay.js"></script>
+</body>
+</html>

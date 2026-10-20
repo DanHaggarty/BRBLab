@@ -156,7 +156,7 @@ labels per lesson:
 | # | Lesson | Folder | OWASP |
 |---|---|---|---|
 | 01 | All You Can Eat | `01-llm10-all-you-can-eat` | LLM10 (built) |
-| 02 | Backstage Pass | `02-backstage-pass` | least privilege (built) |
+| 02 | Backstage Pass | `02-backstage-pass` | LLM10 access controls / least privilege (built) |
 | 03 | Denial of Wallet | `03-llm10-denial-of-wallet` | LLM10 (built) |
 | 04 | Simon Says | `04-llm01-simon-says` | LLM01 |
 | 05 | Loose Lips | `05-llm07-loose-lips` | LLM07 |

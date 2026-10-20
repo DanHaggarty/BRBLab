@@ -39,9 +39,12 @@ function Body($film) {
     ConvertTo-Json -Depth 5
 }
 
+$base = Invoke-RestMethod http://localhost:4000/key/generate -Method Post -Headers $admin -ContentType 'application/json' `
+  -Body '{"key_alias":"manual-baseline","models":["qwen"],"rpm_limit":5}'
 $k = Invoke-RestMethod http://localhost:4000/key/generate -Method Post -Headers $admin -ContentType 'application/json' `
-  -Body '{"key_alias":"manual-rpm","models":["qwen"],"rpm_limit":5}'
-$user = @{ Authorization = "Bearer $($k.key)" }
+  -Body '{"key_alias":"manual-blue","models":["qwen"],"rpm_limit":5}'
+$baseUser = @{ Authorization = "Bearer $($base.key)" }
+$user     = @{ Authorization = "Bearer $($k.key)" }
 ```
 
 | Line | What it does |
@@ -56,6 +59,7 @@ $user = @{ Authorization = "Bearer $($k.key)" }
 | `key_alias` | A readable label for lists and logs. It isn't secret. |
 | `models: ["qwen"]` | The key can call only this model alias (see 02 · Backstage Pass) |
 | `rpm_limit: 5` | At most 5 requests per minute |
+| two keys | Identical limits. `$base` is used for Baseline, `$k` for Blue Team, so the Blue Team burst starts with a fresh per-minute counter. |
 
 `$k.key` holds the new `sk-...` key. LiteLLM stores only a hash of it,
 so this is the one time it exists in full.
@@ -66,7 +70,7 @@ A limit is only useful if it doesn't get in the way of ordinary use. One
 request with the limited key:
 
 ```powershell
-(Invoke-RestMethod $url -Method Post -Headers $user -ContentType 'application/json' -Body (Body $films[0])).choices[0].message.content
+(Invoke-RestMethod $url -Method Post -Headers $baseUser -ContentType 'application/json' -Body (Body $films[0])).choices[0].message.content
 ```
 
 **Expected:** `HAL 9000`. The key works exactly like the master key for
@@ -102,9 +106,8 @@ nothing to limit. Scale the loop to 8,000 and nobody else gets a turn.
 
 ## Blue Team: one plate each
 
-Wait 60 seconds so the Baseline request is out of the window, then send
-the same burst with the limited key. The only change is `$user` instead
-of `$admin`:
+Send the same burst with the second limited key, which hasn't been used
+yet. The only change is `$user` instead of `$admin`:
 
 ```powershell
 foreach ($i in 0..7) {
@@ -124,16 +127,38 @@ per-minute window, not a ban.
 
 ## What we observed
 
+From `run.ps1`:
+
 ```
- 1 OK         7.9s  2001: A Space Odyssey  -> HAL 9000
- 2 OK         6.5s  Star Wars              -> R2-D2
- 3 OK         4.8s  Interstellar           -> TARS
- 4 OK         6.5s  Iron Man               -> JARVIS
- 5 OK         6.5s  WALL-E                 -> WALL-E
- 6 BLOCKED  429     Big Hero 6             -> Rate limit exceeded for api_key: 21c1fcd894...abf9.
-                                              Limit type: requests. Current limit: 5, Remaining: 0.
- 7 BLOCKED  429     Short Circuit          -> Rate limit exceeded ...
- 8 BLOCKED  429     Alien                  -> Rate limit exceeded ...
+ RED TEAM   8-request burst with the master key (no limits)
+   ...
+   1 OK         1.3s  2001: A Space Odyssey  -> HAL 9000
+   2 OK         1.8s  Star Wars              -> R2-D2
+   ...
+   8 OK         1.3s  Alien                  -> Ash
+
+ BLUE TEAM   same burst with a fresh key, rpm_limit=5
+
+   key       sk-FI****************wn1w
+   limits    models=qwen, rpm_limit=5
+   ...
+   1 OK         2.5s  2001: A Space Odyssey  -> HAL 9000
+   2 OK         1.8s  Star Wars              -> R2-D2
+   3 OK         1.5s  Interstellar           -> TARS
+   4 OK         2.3s  Iron Man               -> J.A.R.V.I.S.
+   5 OK         1.7s  WALL-E                 -> WALL-E
+   6 BLOCKED  429     Big Hero 6             -> Rate limit exceeded for api_key: 02e6704302...de9e.
+                                                Limit type: requests. Current limit: 5, Remaining: 0.
+   7 BLOCKED  429     Short Circuit          -> Rate limit exceeded ...
+   8 BLOCKED  429     Alien                  -> Rate limit exceeded ...
+
+ RESULTS
+
+   Baseline  OK - the limit didn't get in the way
+   Red Team  8/8 got through - nothing limited the master key
+   Blue Team 5/8 got through, 3 refused with 429 before reaching the model
+
+ PASS   rate limit enforced at the gateway
 ```
 
 Requests 6–8 never reach the model: Baymax, Number 5 and Ash are never
@@ -161,7 +186,7 @@ going all day. Capping what a key can spend is 03 · Denial of Wallet.
 
 ```powershell
 Invoke-RestMethod http://localhost:4000/key/delete -Method Post -Headers $admin -ContentType 'application/json' `
-  -Body (@{ keys = @($k.key) } | ConvertTo-Json)
+  -Body (@{ keys = @($base.key, $k.key) } | ConvertTo-Json)
 ```
 
 ## Try next

@@ -1,0 +1,174 @@
+/* BRB Lab site. Light and dark themes share one set of tokens. */
+:root {
+  --bg: #f7f7f5;
+  --surface: #ffffff;
+  --text: #1c1d21;
+  --muted: #5d6068;
+  --border: #e2e2de;
+  --accent: #2f6fdb;
+  --red: #c8372d;
+  --blue: #2f6fdb;
+  --green: #1f8a4c;
+  --amber: #a86400;
+
+  /* The terminal is dark in both themes. */
+  --term-bg: #0f1115;
+  --term-text: #d6d9df;
+  --term-dim: #7f8590;
+  --term-red: #ff6b61;
+  --term-blue: #6ea8ff;
+  --term-green: #4fd18b;
+  --term-amber: #f2b84b;
+  --term-white: #ffffff;
+
+  --radius: 10px;
+  --mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, "Liberation Mono", monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111317;
+    --surface: #181b20;
+    --text: #e8e9ec;
+    --muted: #9ba0aa;
+    --border: #2a2e35;
+    --accent: #6ea8ff;
+    --red: #ff6b61;
+    --blue: #6ea8ff;
+    --green: #4fd18b;
+    --amber: #f2b84b;
+    --term-bg: #0a0b0e;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 17px/1.6 var(--sans);
+}
+
+a { color: var(--accent); }
+
+.wrap { max-width: 860px; margin: 0 auto; padding: 0 16px; }
+
+/* Header and footer */
+.site-header { border-bottom: 1px solid var(--border); }
+.site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 14px; padding-bottom: 14px; }
+.brand { font-weight: 700; text-decoration: none; color: var(--text); letter-spacing: -0.01em; }
+.brand span { color: var(--muted); font-weight: 500; }
+.site-header nav a { color: var(--muted); text-decoration: none; margin-left: 18px; font-size: 15px; }
+.site-header nav a:hover { color: var(--text); }
+
+.site-footer { border-top: 1px solid var(--border); margin-top: 64px; padding: 24px 0 40px; color: var(--muted); font-size: 14px; }
+
+/* Typography */
+h1 { font-size: clamp(30px, 6vw, 44px); line-height: 1.15; letter-spacing: -0.02em; margin: 48px 0 12px; }
+h2 { font-size: 24px; letter-spacing: -0.01em; margin: 48px 0 12px; }
+h3 { font-size: 18px; margin: 28px 0 8px; }
+.lede { font-size: 19px; color: var(--muted); margin: 0 0 24px; }
+.eyebrow { font: 600 13px/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-top: 48px; }
+.eyebrow + h1 { margin-top: 10px; }
+
+code { font-family: var(--mono); font-size: 0.9em; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 1px 5px; }
+pre code { background: none; border: 0; padding: 0; }
+
+pre.code {
+  font: 14px/1.55 var(--mono);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  overflow-x: auto;
+}
+
+/* Three phases */
+.phases { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 24px 0; }
+.phase { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.phase b { display: block; font: 700 13px/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
+.phase p { margin: 0; font-size: 15px; color: var(--muted); }
+.phase.baseline b { color: var(--muted); }
+.phase.red b { color: var(--red); }
+.phase.blue b { color: var(--blue); }
+
+/* Lesson cards */
+.cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 20px 0; }
+.card { display: block; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; text-decoration: none; color: var(--text); transition: border-color 0.15s; }
+a.card:hover { border-color: var(--accent); }
+.card .num { font: 600 13px/1 var(--mono); color: var(--muted); }
+.card h3 { margin: 8px 0 6px; }
+.card p { margin: 0; font-size: 15px; color: var(--muted); }
+.card .tag { display: inline-block; margin-top: 12px; font: 600 12px/1 var(--mono); padding: 4px 8px; border-radius: 99px; border: 1px solid var(--border); color: var(--muted); }
+.card.soon { opacity: 0.6; }
+
+/* Callouts and findings */
+.findings { list-style: none; padding: 0; margin: 16px 0; display: grid; gap: 10px; }
+.findings li { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 6px; padding: 12px 14px; }
+.limit { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--amber); border-radius: 6px; padding: 12px 14px; }
+
+/* Terminal replay */
+.terminal { background: var(--term-bg); border-radius: var(--radius); margin: 20px 0; overflow: hidden; box-shadow: 0 1px 0 rgba(0,0,0,0.04), 0 12px 32px -16px rgba(0,0,0,0.35); }
+.terminal-bar { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid #23262d; }
+.dots { display: flex; gap: 6px; }
+.dots i { width: 11px; height: 11px; border-radius: 50%; background: #3a3e46; }
+.terminal-title { flex: 1; font: 13px/1 var(--mono); color: var(--term-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.terminal button { font: 600 12px/1 var(--mono); color: var(--term-text); background: #23262d; border: 1px solid #333842; border-radius: 6px; padding: 6px 10px; cursor: pointer; }
+.terminal button:hover { background: #2c3038; }
+/* white-space: normal drops the newlines between the line spans; each span keeps its own spacing. */
+.terminal pre { white-space: normal; margin: 0; padding: 14px 16px 18px; font: 13px/1.6 var(--mono); color: var(--term-text); overflow-x: auto; min-height: 120px; }
+/* Each direct child span is one terminal line; spans inside a line colour its parts. */
+.terminal pre > span { display: block; white-space: pre; }
+/* Hidden lines keep their space, so the terminal doesn't grow and push the page around. */
+.terminal pre > span.hidden { visibility: hidden; }
+
+/* Same colour scheme as the PowerShell scripts (exercises/_lib/common.ps1). */
+.k-dim   { color: var(--term-dim); }
+.k-white { color: var(--term-white); }
+.k-yel   { color: #f2d24b; }
+.k-mag   { color: #d68cf0; }
+.k-cyan  { color: #5fd7e6; }
+.k-teal  { color: #3aa6b0; }
+.k-ok    { color: var(--term-green); }
+.k-warn  { color: var(--term-amber); }
+.k-err   { color: #c9a04a; }
+.k-red   { color: var(--term-red); }
+.k-blue  { color: var(--term-blue); }
+.badge   { font-weight: 700; }
+.b-base  { background: #c0c0c0; color: #000; }
+.b-red   { background: #8b1a14; color: #fff; }
+.b-blue  { background: #1f3fa8; color: #fff; }
+.b-res   { background: #0e6b73; color: #fff; }
+.b-pass  { background: #1a6b3a; color: #fff; }
+.t-dim { color: var(--term-dim); }
+.t-title { color: var(--term-white); font-weight: 700; }
+.t-base { color: var(--term-text); font-weight: 700; }
+.t-red { color: var(--term-red); font-weight: 700; }
+.t-blue { color: var(--term-blue); font-weight: 700; }
+.t-warn { color: var(--term-amber); }
+.t-pass { color: var(--term-green); font-weight: 700; }
+.t-fail { color: var(--term-red); font-weight: 700; }
+.caption { font-size: 14px; color: var(--muted); margin-top: -8px; }
+
+/* Prev / next */
+.pager { display: flex; justify-content: space-between; gap: 12px; margin-top: 48px; }
+.pager a { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; text-decoration: none; color: var(--text); }
+.pager a:hover { border-color: var(--accent); }
+.pager small { display: block; color: var(--muted); font-size: 13px; }
+.pager .next { text-align: right; }
+
+.btn { display: inline-block; background: var(--accent); color: #fff; text-decoration: none; font-weight: 600; padding: 10px 16px; border-radius: 8px; }
+.btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0 8px; }
+
+@media (max-width: 640px) {
+  body { font-size: 16px; }
+  .phases, .cards { grid-template-columns: 1fr; }
+  .site-header nav a { margin-left: 12px; }
+  .pager { flex-direction: column; }
+  .pager .next { text-align: left; }
+}

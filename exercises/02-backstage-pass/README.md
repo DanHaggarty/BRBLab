@@ -1,6 +1,6 @@
 # 02 · Backstage Pass
 
-*Least privilege: per-key model allowlists*
+*OWASP LLM10: Unbounded Consumption, access controls (per-key model allowlists)*
 
 **Baseline → Red Team → Blue Team**
 
@@ -22,6 +22,12 @@ the gateway, the damage is everything the gateway can do.
 On a LiteLLM virtual key that's the `models` list. Like a backstage pass,
 it gets you exactly where it says, and a request for any model alias not
 on the list is refused at the gateway.
+
+OWASP has no separate Top 10 item for over-privileged keys. This is one of
+the mitigations listed under
+[LLM10: Unbounded Consumption](https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/):
+*"Implement strong access controls, including role-based access control
+(RBAC) and the principle of least privilege."*
 
 ## The models in this lab
 
@@ -105,11 +111,41 @@ key. The only difference between the two `/key/generate` calls is
 
 ## What we observed
 
+From `run.ps1`:
+
 ```
-Baseline   qwen-only key -> qwen     -> OK  HAL 9000
-Red Team   open key      -> embed    -> OK - embedding returned (768 numbers)
-Blue Team  qwen-only key -> embed    -> BLOCKED 403: The requested model 'embed' is not
-                                        available for this API key, or the model name is invalid.
+ BASELINE   qwen-only key uses its allowed model
+   ...
+     OK         2.1s  2001: A Space Odyssey  -> HAL 9000
+
+ RED TEAM   an app key with no model allowlist tries the embed model
+
+   key       sk-lC****************ehVw
+   made by   ... -Body '{"key_alias":"ex02-open-224826"}'
+   limits    none set - LiteLLM lets the key call every model
+   request   POST /v1/embeddings  (model=embed)
+   input     "hello world"
+
+   result    OK - embedding returned (768 numbers)
+
+ BLUE TEAM   the same kind of key, with models=["qwen"], tries the embed model
+
+   key       sk-Ds****************oHMQ
+   made by   ... -Body '{"key_alias":"ex02-pass-224827","models":["qwen"]}'
+   limits    models=qwen only - no embed
+   request   POST /v1/embeddings  (model=embed)
+   input     "hello world"
+
+   result    BLOCKED 403 The requested model 'embed' is not available for this API key,
+             or the model name is invalid.
+
+ RESULTS
+
+   Baseline  qwen-only key called qwen - OK
+   Red Team  key with no models list reached embed
+   Blue Team qwen-only key refused embed with 403
+
+ PASS   key restricted to its allowed models
 ```
 
 ## What's happening

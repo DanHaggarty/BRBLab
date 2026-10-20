@@ -10,26 +10,28 @@
 #>
 param([int]$Burst = 8, [int]$RpmLimit = 5)
 . "$PSScriptRoot\..\_lib\common.ps1"
+Assert-LabGateway
 
 function Send-Burst($Key) {
   foreach ($i in 1..$Burst) {
     $film = Get-Film $i
     $r = Invoke-Lab $Key "/v1/chat/completions" (Get-ChatBody $film)
-    if ($r.Ok) { "{0,2} OK       {1,5:N1}s  {2,-22} -> {3}" -f $i, $r.Seconds, $film, $r.Response.choices[0].message.content.Trim() | Write-Host }
-    else       { "{0,2} BLOCKED  {1}     {2,-22} -> {3}" -f $i, $r.Status, $film, $r.Error | Write-Host -ForegroundColor Yellow }
+    Write-Call $i $r $film (Get-Answer $r)
     $r
   }
 }
 
-Write-Host "01 - All You Can Eat  (OWASP LLM10: Unbounded Consumption)" -ForegroundColor White
-Write-Host @"
-   Threat:  an LLM endpoint with no per-caller limits is an all-you-can-eat buffet -
-            one client (a buggy loop, a scraper, an attacker) can send unlimited requests.
-            On a paid API every one of them is billed; on a CPU-only machine like this
-            lab, one caller keeps the model busy and everyone else waits.
-   Control: a LiteLLM virtual key with rpm_limit - a cap on requests per minute.
-            Requests over the cap get HTTP 429 from the gateway and never reach the model,
-            so they cost nothing. (Capping spend itself is lesson 03.)
+Write-Title "01 - All You Can Eat" "OWASP LLM10: Unbounded Consumption"
+Write-Section "Threat" Red @"
+an LLM endpoint with no per-caller limits is an all-you-can-eat buffet -
+one client (a buggy loop, a scraper, an attacker) can send unlimited requests.
+On a paid API every one of them is billed; on a CPU-only machine like this
+lab, one caller keeps the model busy and everyone else waits.
+"@
+Write-Section "Control" Blue @"
+a LiteLLM virtual key with rpm_limit - a cap on requests per minute.
+Requests over the cap get HTTP 429 from the gateway and never reach the model,
+so they cost nothing. (Capping spend itself is lesson 03.)
 "@
 
 $baselineKey = New-LabKey "ex01-baseline" @{ models = @("qwen"); rpm_limit = $RpmLimit }
@@ -39,8 +41,7 @@ try {
   Write-Phase "Baseline" "one normal request with a rate-limited key"
   Write-Request "/v1/chat/completions" $ChatBody
   $baseline = Invoke-Lab $baselineKey "/v1/chat/completions" $ChatBody
-  if ($baseline.Ok) { "   OK  {0} -> {1}" -f $Films[0], $baseline.Response.choices[0].message.content.Trim() | Write-Host }
-  else              { "   FAILED  {0} {1}" -f $baseline.Status, $baseline.Error | Write-Host -ForegroundColor Yellow }
+  Write-Call $null $baseline $Films[0] (Get-Answer $baseline)
 
   Write-Phase "Red Team" "$Burst-request burst with the master key (no limits)"
   Write-MasterKeyInfo
@@ -56,8 +57,12 @@ try {
   Remove-LabKey $burstKey
 }
 
+Write-Results
+
 $redOk   = @($red  | Where-Object Ok).Count
 $blueOk  = @($blue | Where-Object Ok).Count
 $blue429 = @($blue | Where-Object { $_.Status -eq 429 }).Count
-Write-Host "`nBaseline: $(if ($baseline.Ok) {'OK'} else {'failed'}).  Red Team: $redOk/$Burst got through.  Blue Team: $blueOk/$Burst got through, $blue429 got 429."
+Write-Field "Baseline" $(if ($baseline.Ok) { "OK - the limit didn't get in the way" } else { "failed" }) $(if ($baseline.Ok) { "Green" } else { "Red" })
+Write-Field "Red Team" "$redOk/$Burst got through - nothing limited the master key" Yellow
+Write-Field "Blue Team" "$blueOk/$Burst got through, $blue429 refused with 429 before reaching the model" Cyan
 Write-Verdict ($baseline.Ok -and ($redOk -eq $Burst) -and ($blue429 -ge 1) -and ($blueOk -le $RpmLimit)) "rate limit enforced at the gateway"
