@@ -41,45 +41,52 @@ embed   embeddings (nomic-embed-text)    turns text into numbers for document se
 
   <h2>Watch it run</h2>
   <div class="terminal">
-    <div class="terminal-bar"><span class="dots"><i></i><i></i><i></i></span><span class="terminal-title">exercises\02-backstage-pass\run.ps1</span><button type="button">Replay</button></div>
-<pre><span class="k-dim">==============================================================================</span>
-<span><span class="k-white">  02 - Backstage Pass</span><span class="k-dim">   OWASP LLM10: Unbounded Consumption (access controls)</span></span>
-<span class="k-dim">==============================================================================</span>
-<span> </span>
-<span class="t-base"><span class="badge b-base"> BASELINE </span>  qwen-only key uses its allowed model</span>
-<span> </span>
-<span><span class="k-dim">   request   </span><span class="k-cyan">POST /v1/chat/completions</span><span class="k-teal">  (model=qwen, max_tokens=10)</span></span>
-<span><span class="k-dim">   prompt    </span><span class="k-white">&quot;Who is the robot or AI in the film &#39;2001: A Space Odyssey&#39;? Reply with the name only.&quot;</span></span>
-<span> </span>
-<span class="call"><span class="k-dim">     </span><span class="k-ok">OK       </span><span class="k-dim">  2.1s  </span><span class="k-white">2001: A Space Odyssey </span><span class="k-dim"> -&gt; </span><span class="k-cyan">HAL 9000     </span><span class="k-mag"></span></span>
-<span> </span>
-<span class="t-red"><span class="badge b-red"> RED TEAM </span>  an app key with no model allowlist tries the embed model</span>
-<span> </span>
-<span><span class="k-dim">   key       </span><span class="k-yel">sk-lC****************ehVw</span></span>
-<span><span class="k-dim">   made by   </span>Invoke-RestMethod http://127.0.0.1:4000/key/generate -Method Post -Headers @{ Authorization = &quot;Bearer &lt;master key&gt;&quot; } -ContentType &#39;application/json&#39; -Body &#39;{&quot;key_alias&quot;:&quot;ex02-open-224826&quot;}&#39;</span>
-<span><span class="k-dim">   limits    </span><span class="k-mag">none set - LiteLLM lets the key call every model</span></span>
-<span><span class="k-dim">   request   </span><span class="k-cyan">POST /v1/embeddings</span><span class="k-teal">  (model=embed)</span></span>
-<span><span class="k-dim">   input     </span><span class="k-white">&quot;hello world&quot;</span></span>
-<span> </span>
-<span class="call"><span class="k-dim">   result    </span><span class="k-ok">OK </span>- embedding returned (768 numbers)</span>
-<span> </span>
-<span class="t-blue"><span class="badge b-blue"> BLUE TEAM </span>  the same kind of key, with models=[&quot;qwen&quot;], tries the embed model</span>
-<span> </span>
-<span><span class="k-dim">   key       </span><span class="k-yel">sk-Ds****************oHMQ</span></span>
-<span><span class="k-dim">   made by   </span>Invoke-RestMethod http://127.0.0.1:4000/key/generate -Method Post -Headers @{ Authorization = &quot;Bearer &lt;master key&gt;&quot; } -ContentType &#39;application/json&#39; -Body &#39;{&quot;key_alias&quot;:&quot;ex02-pass-224827&quot;,&quot;models&quot;:[&quot;qwen&quot;]}&#39;</span>
-<span><span class="k-dim">   limits    </span><span class="k-mag">models=qwen only - no embed</span></span>
-<span><span class="k-dim">   request   </span><span class="k-cyan">POST /v1/embeddings</span><span class="k-teal">  (model=embed)</span></span>
-<span><span class="k-dim">   input     </span><span class="k-white">&quot;hello world&quot;</span></span>
-<span> </span>
-<span class="t-warn"><span class="k-dim">   result    </span><span class="k-warn">BLOCKED 403 </span><span class="k-err">The requested model &#39;embed&#39; is not available for this API key, or the model name is invalid. Check the models available to you and try again.</span></span>
-<span> </span>
-<span class="t-res"><span class="badge b-res"> RESULTS </span></span>
-<span> </span>
-<span><span class="k-dim">   Baseline  </span><span class="k-ok">qwen-only key called qwen - OK</span></span>
-<span><span class="k-dim">   Red Team  </span><span class="k-warn">key with no models list reached embed</span></span>
-<span><span class="k-dim">   Blue Team </span><span class="k-cyan">qwen-only key refused embed with 403</span></span>
-<span> </span>
-<span class="t-pass"><span class="badge b-pass"> PASS </span>  key restricted to its allowed models</span></pre>
+    <div class="terminal-bar"><span class="dots"><i></i><i></i><i></i></span><span class="terminal-title">exercises\02-backstage-pass\run.ps1 &#183; recorded 2026-10-21</span><button type="button">Replay</button></div>
+<!-- recording:start - written by lab.ps1 -Record, don't edit by hand -->
+<pre data-recorded="2026-10-21"><span data-t="0"> </span>
+<span data-t="41"><span class="f-DarkGray">==============================================================================</span></span>
+<span data-t="71"><span class="f-White">  02 - Backstage Pass</span><span class="f-DarkGray">   OWASP LLM10: Unbounded Consumption (access controls)</span></span>
+<span data-t="77"><span class="f-DarkGray">==============================================================================</span></span>
+<span data-t="398"> </span>
+<span data-t="407"><span class="f-Black b-Gray"> BASELINE </span><span class="f-Gray">  qwen-only key uses its allowed model</span></span>
+<span data-t="411"> </span>
+<span data-t="438"><span class="f-DarkGray">   request   </span><span class="f-Cyan">POST /v1/chat/completions</span><span class="f-DarkCyan">  (model=qwen, max_tokens=10)</span></span>
+<span data-t="453"><span class="f-DarkGray">   prompt    </span><span class="f-White">&quot;Who is the robot or AI in the film &#39;2001: A Space Odyssey&#39;? Reply with the name only.&quot;</span></span>
+<span data-t="457"> </span>
+<span data-t="4195"><span class="f-DarkGray">     </span><span class="f-Green">OK       </span><span class="f-DarkGray">  3.6s  </span><span class="f-White">2001: A Space Odyssey </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">HAL 9000     </span></span>
+<span data-t="4206"> </span>
+<span data-t="4215"><span class="f-White b-DarkRed"> RED TEAM </span><span class="f-Red">  an app key with no model allowlist tries the embed model</span></span>
+<span data-t="4221"> </span>
+<span data-t="4249"><span class="f-DarkGray">   key       </span><span class="f-Yellow">sk-m_****************avPA</span></span>
+<span data-t="4257"><span class="f-DarkGray">   made by   </span><span class="f-Gray">Invoke-RestMethod http://127.0.0.1:4000/key/generate -Method Post -Headers @{ Authorization = &quot;Bearer</span></span>
+<span data-t="4261"><span class="f-Gray">             &lt;master key&gt;&quot; } -ContentType &#39;application/json&#39; -Body &#39;{&quot;key_alias&quot;:&quot;ex02-open-124850&quot;}&#39;</span></span>
+<span data-t="4277"><span class="f-DarkGray">   limits    </span><span class="f-Magenta">none set - LiteLLM lets the key call every model</span></span>
+<span data-t="4314"><span class="f-DarkGray">   request   </span><span class="f-Cyan">POST /v1/embeddings</span><span class="f-DarkCyan">  (model=embed)</span></span>
+<span data-t="4330"><span class="f-DarkGray">   input     </span><span class="f-White">&quot;hello world&quot;</span></span>
+<span data-t="4337"> </span>
+<span data-t="5929"><span class="f-DarkGray">   result    </span><span class="f-Green">OK </span><span class="f-Gray">- embedding returned (768 numbers)</span></span>
+<span data-t="5957"> </span>
+<span data-t="5967"><span class="f-White b-DarkBlue"> BLUE TEAM </span><span class="f-Blue">  the same kind of key, with models=[&quot;qwen&quot;], tries the embed model</span></span>
+<span data-t="5972"> </span>
+<span data-t="5982"><span class="f-DarkGray">   key       </span><span class="f-Yellow">sk-JZ****************Ep2g</span></span>
+<span data-t="5993"><span class="f-DarkGray">   made by   </span><span class="f-Gray">Invoke-RestMethod http://127.0.0.1:4000/key/generate -Method Post -Headers @{ Authorization = &quot;Bearer</span></span>
+<span data-t="5998"><span class="f-Gray">             &lt;master key&gt;&quot; } -ContentType &#39;application/json&#39; -Body &#39;{&quot;key_alias&quot;:&quot;ex02-pass-124850&quot;,&quot;models&quot;:[&quot;qwen&quot;]}&#39;</span></span>
+<span data-t="6009"><span class="f-DarkGray">   limits    </span><span class="f-Magenta">models=qwen only - no embed</span></span>
+<span data-t="6024"><span class="f-DarkGray">   request   </span><span class="f-Cyan">POST /v1/embeddings</span><span class="f-DarkCyan">  (model=embed)</span></span>
+<span data-t="6032"><span class="f-DarkGray">   input     </span><span class="f-White">&quot;hello world&quot;</span></span>
+<span data-t="6036"> </span>
+<span data-t="6105"><span class="f-DarkGray">   result    </span><span class="f-Yellow">BLOCKED 403 </span><span class="f-DarkYellow">The requested model &#39;embed&#39; is not available for this API key, or the model name is invalid.</span></span>
+<span data-t="6110"><span class="f-DarkYellow">                         Check the models available to you and try again.</span></span>
+<span data-t="6243"> </span>
+<span data-t="6250"><span class="f-White b-DarkCyan"> RESULTS </span><span class="f-Cyan">  </span></span>
+<span data-t="6256"> </span>
+<span data-t="6264"><span class="f-DarkGray">   Baseline  </span><span class="f-Green">qwen-only key called qwen - OK</span></span>
+<span data-t="6273"><span class="f-DarkGray">   Red Team  </span><span class="f-Yellow">key with no models list reached embed</span></span>
+<span data-t="6281"><span class="f-DarkGray">   Blue Team </span><span class="f-Cyan">qwen-only key refused embed with 403</span></span>
+<span data-t="6287"> </span>
+<span data-t="6292"><span class="f-White b-DarkGreen"> PASS </span><span class="f-Green">  key restricted to its allowed models</span></span>
+<span data-t="6296"> </span></pre>
+<!-- recording:end -->
   </div>
   <p class="caption">Recorded on a CPU-only Windows PC: Ollama behind a LiteLLM gateway. Compare the two <code>made by</code> lines: the only difference is <code>"models":["qwen"]</code>.</p>
 

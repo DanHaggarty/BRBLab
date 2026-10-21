@@ -5,11 +5,13 @@
     powershell -ExecutionPolicy Bypass -File .\lab.ps1          # menu
     powershell -ExecutionPolicy Bypass -File .\lab.ps1 -Run 2   # run exercise 02 directly
     powershell -ExecutionPolicy Bypass -File .\lab.ps1 -Run all # run every exercise in order
+    powershell -ExecutionPolicy Bypass -File .\lab.ps1 -Record 4    # re-record 04's replay on the website
+    powershell -ExecutionPolicy Bypass -File .\lab.ps1 -Record all  # re-record every replay
 
   Exercises are found automatically: any exercises\NN-*\run.ps1. The title
   and summary come from the first two lines of each script's comment header.
 #>
-param([string]$Run)
+param([string]$Run, [string]$Record)
 
 . "$PSScriptRoot\exercises\_lib\common.ps1"
 
@@ -159,8 +161,80 @@ function Resolve-Choice($Choice, $Exercises) {
   $null
 }
 
+# --- Recording the website's replays ---------------------------------------------
+# Runs an exercise with BRB_RECORD set (common.ps1 then logs every line with its colours
+# and timing), and writes the result into the exercise's page in site\lessons as static
+# HTML, so the site always replays a real, current run.
+
+$RecordRedacted = "sk-*************  (redacted)"
+
+function Save-Recording($Exercise) {
+  $nn = "{0:D2}" -f $Exercise.Number
+  $page = Get-ChildItem "$PSScriptRoot\site\lessons" -Filter "$nn-*.html" | Select-Object -First 1
+  if (-not $page) { Write-Host "   $nn has no page in site\lessons yet - copy an existing lesson page first." -ForegroundColor Yellow; return }
+
+  $log = Join-Path $env:TEMP "brb-record-$nn.jsonl"
+  Remove-Item $log -ErrorAction SilentlyContinue
+  $env:BRB_RECORD = $log; $env:BRB_NO_PAUSE = "1"
+  try { Invoke-Exercise $Exercise; $exit = $LASTEXITCODE }
+  finally { Remove-Item Env:\BRB_RECORD, Env:\BRB_NO_PAUSE -ErrorAction SilentlyContinue }
+  if ($exit -ne 0 -or -not (Test-Path $log)) { Write-Host "   $nn didn't finish, so its page wasn't changed." -ForegroundColor Yellow; return }
+
+  # Keep the title, skip the intro paragraphs, keep every phase up to the verdict.
+  $keep = @(); $state = "title"
+  foreach ($entry in (Get-Content $log -Encoding UTF8 | ForEach-Object { $_ | ConvertFrom-Json })) {
+    if ($entry.m) {
+      if ($entry.m -eq "title") { $state = "intro" }
+      elseif ($entry.m -eq "phase") { $state = "run" }
+      elseif ($entry.m -eq "verdict" -and $state -eq "run") { break }
+      continue
+    }
+    if ($state -ne "intro") { $keep += $entry }
+  }
+  $text = ($keep | ForEach-Object { $_.s | ForEach-Object { $_.x } }) -join "`n"
+  if ($text -notmatch '\bPASS\b') { Write-Host "   $nn didn't PASS, so its page wasn't changed." -ForegroundColor Yellow; return }
+
+  # The master key is only ever shown fully starred on the site. Hide-Key's form is
+  # replaced; if the real value appears anywhere, nothing is written.
+  $master = Get-MasterKey
+  $hidden = Hide-Key $master
+  if ($text.Contains($master)) { Write-Host "   The recording of $nn contains the master key - page NOT written." -ForegroundColor Red; return }
+
+  $start = $keep[0].t
+  $lines = foreach ($entry in $keep) {
+    $spans = foreach ($seg in $entry.s) {
+      $x = [System.Net.WebUtility]::HtmlEncode($seg.x.Replace($hidden, $RecordRedacted))
+      $cls = "f-" + $(if ($seg.f) { $seg.f } else { "Gray" }) + $(if ($seg.b) { " b-$($seg.b)" } else { "" })
+      "<span class=`"$cls`">$x</span>"
+    }
+    $body = if ($spans) { $spans -join "" } else { " " }
+    "<span data-t=`"$($entry.t - $start)`">$body</span>"
+  }
+  $date = Get-Date -Format "yyyy-MM-dd"
+  $block = "<!-- recording:start - written by lab.ps1 -Record, don't edit by hand -->`n<pre data-recorded=`"$date`">" + ($lines -join "`n") + "</pre>`n<!-- recording:end -->"
+
+  $html = [IO.File]::ReadAllText($page.FullName)
+  if ($html -match '<!-- recording:start') {
+    $html = [regex]::Replace($html, '(?s)<!-- recording:start.*?<!-- recording:end -->', { param($m) $block })
+  } else {
+    $html = [regex]::Replace($html, '(?s)<pre>.*?</pre>(?=\s*</div>\s*<p class="caption">)', { param($m) $block })
+  }
+  $rel = "exercises\" + (Split-Path (Split-Path $Exercise.Script -Parent) -Leaf) + "\run.ps1"
+  $html = [regex]::Replace($html, '<span class="terminal-title">[^<]*</span>', "<span class=`"terminal-title`">$rel &#183; recorded $date</span>")
+  if (-not $html.Contains($block)) { Write-Host "   Couldn't find the terminal block in $($page.Name)." -ForegroundColor Yellow; return }
+  [IO.File]::WriteAllText($page.FullName, $html, (New-Object Text.UTF8Encoding $false))
+  Write-Host "   Recorded $nn into site\lessons\$($page.Name) ($($keep.Count) lines)." -ForegroundColor Green
+}
+
 $exercises = @(Get-Exercises)
 if ($exercises.Count -eq 0) { Write-Host "No exercises found under $PSScriptRoot\exercises." -ForegroundColor Red; exit 1 }
+
+if ($Record) {
+  $picked = Resolve-Choice $Record $exercises
+  if (-not $picked) { Write-Host "No exercise '$Record'. Choose from: $(($exercises.Number | ForEach-Object { '{0:D2}' -f $_ }) -join ', ') or all." -ForegroundColor Red; exit 1 }
+  $picked | ForEach-Object { Save-Recording $_ }
+  exit 0
+}
 
 if ($Run) {
   $picked = Resolve-Choice $Run $exercises

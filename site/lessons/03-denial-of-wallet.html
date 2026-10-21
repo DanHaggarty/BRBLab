@@ -37,71 +37,78 @@
 
   <h2>Watch it run</h2>
   <div class="terminal">
-    <div class="terminal-bar"><span class="dots"><i></i><i></i><i></i></span><span class="terminal-title">exercises\03-llm10-denial-of-wallet\run.ps1</span><button type="button">Replay</button></div>
-<pre><span class="k-dim">==============================================================================</span>
-<span><span class="k-white">  03 - Denial of Wallet</span><span class="k-dim">   OWASP LLM10: Unbounded Consumption</span></span>
-<span class="k-dim">==============================================================================</span>
-<span> </span>
-<span class="t-base"><span class="badge b-base"> BASELINE </span>  one request with a capped key</span>
-<span> </span>
-<span><span class="k-dim">   request   </span><span class="k-cyan">POST /v1/chat/completions</span><span class="k-teal">  (model=qwen, max_tokens=10)</span></span>
-<span><span class="k-dim">   prompt    </span><span class="k-white">&quot;Who is the robot or AI in the film &#39;2001: A Space Odyssey&#39;? Reply with the name only.&quot;</span></span>
-<span> </span>
-<span class="call"><span class="k-dim">     </span><span class="k-ok">OK       </span><span class="k-dim">  1.1s  </span><span class="k-white">2001: A Space Odyssey </span><span class="k-dim"> -&gt; </span><span class="k-cyan">HAL 9000     </span><span class="k-mag">61 tokens = $0.000068</span></span>
-<span> </span>
-<span class="t-red"><span class="badge b-red"> RED TEAM </span>  15 requests with the master key - no ceiling</span>
-<span> </span>
-<span><span class="k-dim">   key       </span><span class="k-yel">sk-*************  (redacted)</span></span>
-<span><span class="k-dim">   made by   </span>no API call - it&#39;s the LITELLM_MASTER_KEY=... line in .env, loaded when LiteLLM starts</span>
-<span><span class="k-dim">   limits    </span><span class="k-mag">none - any model, no rate limit, no budget</span></span>
-<span><span class="k-dim">   request   </span><span class="k-cyan">POST /v1/chat/completions</span><span class="k-teal">  (model=qwen, max_tokens=10)</span></span>
-<span><span class="k-dim">   prompt    </span><span class="k-white">&quot;Who is the robot or AI in the film &#39;&lt;film&gt;&#39;? Reply with the name only.&quot;</span></span>
-<span> </span>
-<span class="call"><span class="k-dim">   1 </span><span class="k-ok">OK       </span><span class="k-dim">  1.1s  </span><span class="k-white">2001: A Space Odyssey </span><span class="k-dim"> -&gt; </span><span class="k-cyan">HAL 9000     </span><span class="k-mag">spent so far: $0.000068</span></span>
-<span class="call"><span class="k-dim">   2 </span><span class="k-ok">OK       </span><span class="k-dim">  1.7s  </span><span class="k-white">Star Wars             </span><span class="k-dim"> -&gt; </span><span class="k-cyan">R2-D2        </span><span class="k-mag">spent so far: $0.000126</span></span>
-<span class="call"><span class="k-dim">   3 </span><span class="k-ok">OK       </span><span class="k-dim">  1.5s  </span><span class="k-white">Interstellar          </span><span class="k-dim"> -&gt; </span><span class="k-cyan">TARS         </span><span class="k-mag">spent so far: $0.000180</span></span>
-<span class="call"><span class="k-dim">   4 </span><span class="k-ok">OK       </span><span class="k-dim">  1.7s  </span><span class="k-white">Iron Man              </span><span class="k-dim"> -&gt; </span><span class="k-cyan">JARVIS       </span><span class="k-mag">spent so far: $0.000236</span></span>
-<span class="call"><span class="k-dim">   5 </span><span class="k-ok">OK       </span><span class="k-dim">  1.7s  </span><span class="k-white">WALL-E                </span><span class="k-dim"> -&gt; </span><span class="k-cyan">WALL-E       </span><span class="k-mag">spent so far: $0.000293</span></span>
-<span class="call"><span class="k-dim">   6 </span><span class="k-ok">OK       </span><span class="k-dim">  1.4s  </span><span class="k-white">Big Hero 6            </span><span class="k-dim"> -&gt; </span><span class="k-cyan">Baymax       </span><span class="k-mag">spent so far: $0.000349</span></span>
-<span class="call"><span class="k-dim">   7 </span><span class="k-ok">OK       </span><span class="k-dim">  1.7s  </span><span class="k-white">Short Circuit         </span><span class="k-dim"> -&gt; </span><span class="k-cyan">Number 5     </span><span class="k-mag">spent so far: $0.000405</span></span>
-<span class="call"><span class="k-dim">   8 </span><span class="k-ok">OK       </span><span class="k-dim">  1.5s  </span><span class="k-white">Alien                 </span><span class="k-dim"> -&gt; </span><span class="k-cyan">Russy        </span><span class="k-mag">spent so far: $0.000459</span></span>
-<span class="call"><span class="k-dim">   9 </span><span class="k-ok">OK       </span><span class="k-dim">  2.4s  </span><span class="k-white">2001: A Space Odyssey </span><span class="k-dim"> -&gt; </span><span class="k-cyan">HAL 9000     </span><span class="k-mag">spent so far: $0.000527</span></span>
-<span class="call"><span class="k-dim">  10 </span><span class="k-ok">OK       </span><span class="k-dim">  1.8s  </span><span class="k-white">Star Wars             </span><span class="k-dim"> -&gt; </span><span class="k-cyan">R2-D2        </span><span class="k-mag">spent so far: $0.000585</span></span>
-<span class="call"><span class="k-dim">  11 </span><span class="k-ok">OK       </span><span class="k-dim">  1.5s  </span><span class="k-white">Interstellar          </span><span class="k-dim"> -&gt; </span><span class="k-cyan">TARS         </span><span class="k-mag">spent so far: $0.000639</span></span>
-<span class="call"><span class="k-dim">  12 </span><span class="k-ok">OK       </span><span class="k-dim">  2.3s  </span><span class="k-white">Iron Man              </span><span class="k-dim"> -&gt; </span><span class="k-cyan">J.A.R.V.I.S. </span><span class="k-mag">spent so far: $0.000703</span></span>
-<span class="call"><span class="k-dim">  13 </span><span class="k-ok">OK       </span><span class="k-dim">  1.7s  </span><span class="k-white">WALL-E                </span><span class="k-dim"> -&gt; </span><span class="k-cyan">WALL-E       </span><span class="k-mag">spent so far: $0.000760</span></span>
-<span class="call"><span class="k-dim">  14 </span><span class="k-ok">OK       </span><span class="k-dim">  1.4s  </span><span class="k-white">Big Hero 6            </span><span class="k-dim"> -&gt; </span><span class="k-cyan">Baymax       </span><span class="k-mag">spent so far: $0.000816</span></span>
-<span class="call"><span class="k-dim">  15 </span><span class="k-ok">OK       </span><span class="k-dim">  1.7s  </span><span class="k-white">Short Circuit         </span><span class="k-dim"> -&gt; </span><span class="k-cyan">Number 5     </span><span class="k-mag">spent so far: $0.000872</span></span>
-<span> </span>
-<span><span class="k-dim">   total     </span><span class="k-mag">15/15 got through, 805 tokens = $0.000872</span><span class="k-warn"> - over the $0.0005 cap the Blue Team key gets, and nothing stopped it</span></span>
-<span> </span>
-<span class="t-blue"><span class="badge b-blue"> BLUE TEAM </span>  key with max_budget = $0.0005, spending until refused</span>
-<span> </span>
-<span><span class="k-dim">   key       </span><span class="k-yel">sk-bQ****************8WWQ</span></span>
-<span><span class="k-dim">   made by   </span>Invoke-RestMethod http://127.0.0.1:4000/key/generate -Method Post -Headers @{ Authorization = &quot;Bearer &lt;master key&gt;&quot; } -ContentType &#39;application/json&#39; -Body &#39;{&quot;key_alias&quot;:&quot;ex03-blue-224831&quot;,&quot;models&quot;:[&quot;qwen&quot;],&quot;max_budget&quot;:0.0005}&#39;</span>
-<span><span class="k-dim">   limits    </span><span class="k-mag">models=qwen, max_budget=$0.0005</span></span>
-<span><span class="k-dim">   request   </span><span class="k-cyan">POST /v1/chat/completions</span><span class="k-teal">  (model=qwen, max_tokens=10)</span></span>
-<span><span class="k-dim">   prompt    </span><span class="k-white">&quot;Who is the robot or AI in the film &#39;&lt;film&gt;&#39;? Reply with the name only.&quot;</span></span>
-<span> </span>
-<span class="call"><span class="k-dim">   1 </span><span class="k-ok">OK       </span><span class="k-dim">  2.4s  </span><span class="k-white">2001: A Space Odyssey </span><span class="k-dim"> -&gt; </span><span class="k-cyan">HAL 9000     </span><span class="k-mag">spent so far: $0.000068</span></span>
-<span class="call"><span class="k-dim">   2 </span><span class="k-ok">OK       </span><span class="k-dim">  1.9s  </span><span class="k-white">Star Wars             </span><span class="k-dim"> -&gt; </span><span class="k-cyan">R2-D2        </span><span class="k-mag">spent so far: $0.000126</span></span>
-<span class="call"><span class="k-dim">   3 </span><span class="k-ok">OK       </span><span class="k-dim">  1.5s  </span><span class="k-white">Interstellar          </span><span class="k-dim"> -&gt; </span><span class="k-cyan">TARS         </span><span class="k-mag">spent so far: $0.000180</span></span>
-<span class="call"><span class="k-dim">   4 </span><span class="k-ok">OK       </span><span class="k-dim">  1.7s  </span><span class="k-white">Iron Man              </span><span class="k-dim"> -&gt; </span><span class="k-cyan">JARVIS       </span><span class="k-mag">spent so far: $0.000236</span></span>
-<span class="call"><span class="k-dim">   5 </span><span class="k-ok">OK       </span><span class="k-dim">  1.7s  </span><span class="k-white">WALL-E                </span><span class="k-dim"> -&gt; </span><span class="k-cyan">WALL-E       </span><span class="k-mag">spent so far: $0.000293</span></span>
-<span class="call"><span class="k-dim">   6 </span><span class="k-ok">OK       </span><span class="k-dim">  1.3s  </span><span class="k-white">Big Hero 6            </span><span class="k-dim"> -&gt; </span><span class="k-cyan">Baymax       </span><span class="k-mag">spent so far: $0.000349</span></span>
-<span class="call"><span class="k-dim">   7 </span><span class="k-ok">OK       </span><span class="k-dim">  1.6s  </span><span class="k-white">Short Circuit         </span><span class="k-dim"> -&gt; </span><span class="k-cyan">Number 5     </span><span class="k-mag">spent so far: $0.000405</span></span>
-<span class="call"><span class="k-dim">   8 </span><span class="k-ok">OK       </span><span class="k-dim">  1.3s  </span><span class="k-white">Alien                 </span><span class="k-dim"> -&gt; </span><span class="k-cyan">Ash          </span><span class="k-mag">spent so far: $0.000457</span></span>
-<span class="call"><span class="k-dim">   9 </span><span class="k-ok">OK       </span><span class="k-dim">  2.3s  </span><span class="k-white">2001: A Space Odyssey </span><span class="k-dim"> -&gt; </span><span class="k-cyan">HAL 9000     </span><span class="k-mag">spent so far: $0.000525</span></span>
-<span class="t-warn"><span class="k-dim">  10 </span><span class="k-warn">BLOCKED  </span><span class="k-warn">422     </span><span class="k-white">Star Wars             </span><span class="k-dim"> -&gt; </span><span class="k-err">Budget has been exceeded! Key=ex03-blue-224831 (sk-...8WWQ) Current cost: 0.000525, Max budget: 0.0005</span></span>
-<span> </span>
-<span class="t-res"><span class="badge b-res"> RESULTS </span></span>
-<span> </span>
-<span><span class="k-dim">   Baseline  </span><span class="k-ok">one request recorded $0.000068</span></span>
-<span><span class="k-dim">   Red Team  </span><span class="k-warn">15/15 got through, $0.000872 with no ceiling</span></span>
-<span><span class="k-dim">   Blue Team </span><span class="k-cyan">refused at request 10</span></span>
-<span><span class="k-dim">   spend     </span><span class="k-mag">$0.000525 of a $0.000500 budget (105%) - the request that crossed the line still ran</span></span>
-<span> </span>
-<span class="t-pass"><span class="badge b-pass"> PASS </span>  budget enforced at the gateway</span></pre>
+    <div class="terminal-bar"><span class="dots"><i></i><i></i><i></i></span><span class="terminal-title">exercises\03-llm10-denial-of-wallet\run.ps1 &#183; recorded 2026-10-21</span><button type="button">Replay</button></div>
+<!-- recording:start - written by lab.ps1 -Record, don't edit by hand -->
+<pre data-recorded="2026-10-21"><span data-t="0"> </span>
+<span data-t="40"><span class="f-DarkGray">==============================================================================</span></span>
+<span data-t="65"><span class="f-White">  03 - Denial of Wallet</span><span class="f-DarkGray">   OWASP LLM10: Unbounded Consumption</span></span>
+<span data-t="71"><span class="f-DarkGray">==============================================================================</span></span>
+<span data-t="437"> </span>
+<span data-t="448"><span class="f-Black b-Gray"> BASELINE </span><span class="f-Gray">  one request with a capped key</span></span>
+<span data-t="452"> </span>
+<span data-t="476"><span class="f-DarkGray">   request   </span><span class="f-Cyan">POST /v1/chat/completions</span><span class="f-DarkCyan">  (model=qwen, max_tokens=10)</span></span>
+<span data-t="491"><span class="f-DarkGray">   prompt    </span><span class="f-White">&quot;Who is the robot or AI in the film &#39;2001: A Space Odyssey&#39;? Reply with the name only.&quot;</span></span>
+<span data-t="496"> </span>
+<span data-t="2465"><span class="f-DarkGray">     </span><span class="f-Green">OK       </span><span class="f-DarkGray">  1.9s  </span><span class="f-White">2001: A Space Odyssey </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">HAL 9000     </span><span class="f-Magenta">61 tokens = $0.000068</span></span>
+<span data-t="2493"> </span>
+<span data-t="2505"><span class="f-White b-DarkRed"> RED TEAM </span><span class="f-Red">  15 requests with the master key - no ceiling</span></span>
+<span data-t="2510"> </span>
+<span data-t="2543"><span class="f-DarkGray">   key       </span><span class="f-Yellow">sk-*************  (redacted)</span></span>
+<span data-t="2551"><span class="f-DarkGray">   made by   </span><span class="f-Gray">no API call - it&#39;s the LITELLM_MASTER_KEY=... line in .env, loaded when LiteLLM starts</span></span>
+<span data-t="2559"><span class="f-DarkGray">   limits    </span><span class="f-Magenta">none - any model, no rate limit, no budget</span></span>
+<span data-t="2576"><span class="f-DarkGray">   request   </span><span class="f-Cyan">POST /v1/chat/completions</span><span class="f-DarkCyan">  (model=qwen, max_tokens=10)</span></span>
+<span data-t="2584"><span class="f-DarkGray">   prompt    </span><span class="f-White">&quot;Who is the robot or AI in the film &#39;&lt;film&gt;&#39;? Reply with the name only.&quot;</span></span>
+<span data-t="2589"> </span>
+<span data-t="4403"><span class="f-DarkGray">   1 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  1.8s  </span><span class="f-White">2001: A Space Odyssey </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">HAL 9000     </span><span class="f-Magenta">spent so far: $0.000068</span></span>
+<span data-t="7094"><span class="f-DarkGray">   2 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.7s  </span><span class="f-White">Star Wars             </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">R2-D2        </span><span class="f-Magenta">spent so far: $0.000126</span></span>
+<span data-t="9326"><span class="f-DarkGray">   3 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.2s  </span><span class="f-White">Interstellar          </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">TARS         </span><span class="f-Magenta">spent so far: $0.000180</span></span>
+<span data-t="12928"><span class="f-DarkGray">   4 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  3.5s  </span><span class="f-White">Iron Man              </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">J.A.R.V.I.S. </span><span class="f-Magenta">spent so far: $0.000244</span></span>
+<span data-t="15445"><span class="f-DarkGray">   5 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.5s  </span><span class="f-White">WALL-E                </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">WALL-E       </span><span class="f-Magenta">spent so far: $0.000301</span></span>
+<span data-t="17530"><span class="f-DarkGray">   6 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.0s  </span><span class="f-White">Big Hero 6            </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">Baymax       </span><span class="f-Magenta">spent so far: $0.000357</span></span>
+<span data-t="19932"><span class="f-DarkGray">   7 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.4s  </span><span class="f-White">Short Circuit         </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">Number 5     </span><span class="f-Magenta">spent so far: $0.000413</span></span>
+<span data-t="21947"><span class="f-DarkGray">   8 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.0s  </span><span class="f-White">Alien                 </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">Ash          </span><span class="f-Magenta">spent so far: $0.000465</span></span>
+<span data-t="25581"><span class="f-DarkGray">   9 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  3.6s  </span><span class="f-White">2001: A Space Odyssey </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">HAL 9000     </span><span class="f-Magenta">spent so far: $0.000533</span></span>
+<span data-t="28308"><span class="f-DarkGray">  10 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.7s  </span><span class="f-White">Star Wars             </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">R2-D2        </span><span class="f-Magenta">spent so far: $0.000591</span></span>
+<span data-t="30580"><span class="f-DarkGray">  11 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.2s  </span><span class="f-White">Interstellar          </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">TARS         </span><span class="f-Magenta">spent so far: $0.000645</span></span>
+<span data-t="33078"><span class="f-DarkGray">  12 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.5s  </span><span class="f-White">Iron Man              </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">JARVIS       </span><span class="f-Magenta">spent so far: $0.000701</span></span>
+<span data-t="35643"><span class="f-DarkGray">  13 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.5s  </span><span class="f-White">WALL-E                </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">WALL-E       </span><span class="f-Magenta">spent so far: $0.000758</span></span>
+<span data-t="37725"><span class="f-DarkGray">  14 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.1s  </span><span class="f-White">Big Hero 6            </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">Baymax       </span><span class="f-Magenta">spent so far: $0.000814</span></span>
+<span data-t="39915"><span class="f-DarkGray">  15 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.2s  </span><span class="f-White">Short Circuit         </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">Number Five  </span><span class="f-Magenta">spent so far: $0.000868</span></span>
+<span data-t="39944"> </span>
+<span data-t="39957"><span class="f-DarkGray">   total     </span><span class="f-Magenta">15/15 got through, 803 tokens = $0.000868</span><span class="f-Yellow"> - over the $0.0005 cap the Blue Team key gets, and nothing stopped it</span></span>
+<span data-t="39966"> </span>
+<span data-t="39973"><span class="f-White b-DarkBlue"> BLUE TEAM </span><span class="f-Blue">  key with max_budget = $0.0005, spending until refused</span></span>
+<span data-t="39978"> </span>
+<span data-t="39994"><span class="f-DarkGray">   key       </span><span class="f-Yellow">sk-oJ****************iaEA</span></span>
+<span data-t="40007"><span class="f-DarkGray">   made by   </span><span class="f-Gray">Invoke-RestMethod http://127.0.0.1:4000/key/generate -Method Post -Headers @{ Authorization = &quot;Bearer</span></span>
+<span data-t="40014"><span class="f-Gray">             &lt;master key&gt;&quot; } -ContentType &#39;application/json&#39; -Body</span></span>
+<span data-t="40019"><span class="f-Gray">             &#39;{&quot;key_alias&quot;:&quot;ex03-blue-124900&quot;,&quot;models&quot;:[&quot;qwen&quot;],&quot;max_budget&quot;:0.0005}&#39;</span></span>
+<span data-t="40032"><span class="f-DarkGray">   limits    </span><span class="f-Magenta">models=qwen, max_budget=$0.0005</span></span>
+<span data-t="40048"><span class="f-DarkGray">   request   </span><span class="f-Cyan">POST /v1/chat/completions</span><span class="f-DarkCyan">  (model=qwen, max_tokens=10)</span></span>
+<span data-t="40057"><span class="f-DarkGray">   prompt    </span><span class="f-White">&quot;Who is the robot or AI in the film &#39;&lt;film&gt;&#39;? Reply with the name only.&quot;</span></span>
+<span data-t="40063"> </span>
+<span data-t="43737"><span class="f-DarkGray">   1 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  3.6s  </span><span class="f-White">2001: A Space Odyssey </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">HAL 9000     </span><span class="f-Magenta">spent so far: $0.000068</span></span>
+<span data-t="46366"><span class="f-DarkGray">   2 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.6s  </span><span class="f-White">Star Wars             </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">R2-D2        </span><span class="f-Magenta">spent so far: $0.000126</span></span>
+<span data-t="48546"><span class="f-DarkGray">   3 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.1s  </span><span class="f-White">Interstellar          </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">TARS         </span><span class="f-Magenta">spent so far: $0.000180</span></span>
+<span data-t="51971"><span class="f-DarkGray">   4 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  3.4s  </span><span class="f-White">Iron Man              </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">J.A.R.V.I.S. </span><span class="f-Magenta">spent so far: $0.000244</span></span>
+<span data-t="54570"><span class="f-DarkGray">   5 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.6s  </span><span class="f-White">WALL-E                </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">WALL-E       </span><span class="f-Magenta">spent so far: $0.000301</span></span>
+<span data-t="56627"><span class="f-DarkGray">   6 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.0s  </span><span class="f-White">Big Hero 6            </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">Baymax       </span><span class="f-Magenta">spent so far: $0.000357</span></span>
+<span data-t="58824"><span class="f-DarkGray">   7 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.2s  </span><span class="f-White">Short Circuit         </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">Number Five  </span><span class="f-Magenta">spent so far: $0.000411</span></span>
+<span data-t="60766"><span class="f-DarkGray">   8 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  1.9s  </span><span class="f-White">Alien                 </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">Mother       </span><span class="f-Magenta">spent so far: $0.000463</span></span>
+<span data-t="64368"><span class="f-DarkGray">   9 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  3.6s  </span><span class="f-White">2001: A Space Odyssey </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">HAL 9000     </span><span class="f-Magenta">spent so far: $0.000531</span></span>
+<span data-t="64477"><span class="f-DarkGray">  10 </span><span class="f-Yellow">BLOCKED  </span><span class="f-Yellow">422     </span><span class="f-White">Star Wars             </span><span class="f-DarkGray"> -&gt; </span><span class="f-DarkYellow">Budget has been exceeded! Key=ex03-blue-124900 (sk-...iaEA) Current</span></span>
+<span data-t="64484"><span class="f-DarkYellow">                                                cost: 0.000531, Max budget: 0.0005</span></span>
+<span data-t="76727"> </span>
+<span data-t="76734"><span class="f-White b-DarkCyan"> RESULTS </span><span class="f-Cyan">  </span></span>
+<span data-t="76739"> </span>
+<span data-t="76748"><span class="f-DarkGray">   Baseline  </span><span class="f-Green">one request recorded $0.000068</span></span>
+<span data-t="76762"><span class="f-DarkGray">   Red Team  </span><span class="f-Yellow">15/15 got through, $0.000868 with no ceiling</span></span>
+<span data-t="76769"><span class="f-DarkGray">   Blue Team </span><span class="f-Cyan">refused at request 10</span></span>
+<span data-t="76787"><span class="f-DarkGray">   spend     </span><span class="f-Magenta">$0.000531 of a $0.000500 budget (106%) - the request that crossed the line still ran</span></span>
+<span data-t="76796"> </span>
+<span data-t="76803"><span class="f-White b-DarkGreen"> PASS </span><span class="f-Green">  budget enforced at the gateway</span></span>
+<span data-t="76807"> </span></pre>
+<!-- recording:end -->
   </div>
   <p class="caption">Recorded on a CPU-only Windows PC: Ollama with qwen2.5:7b behind a LiteLLM gateway, with simulated prices.</p>
 

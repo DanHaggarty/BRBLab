@@ -57,6 +57,51 @@ function Remove-LabKey($Key) {
   Invoke-RestMethod "$GatewayUrl/key/delete" -Method Post -Headers (Get-AuthHeader (Get-MasterKey)) -ContentType 'application/json' -Body $body | Out-Null
 }
 
+# --- Recording, for the website's replays ------------------------------------------
+# With BRB_RECORD set to a file path (lab.ps1 -Record does this), everything written
+# with Write-Host is also appended to that file, one JSON object per terminal line:
+#   {"t":1234,"s":[{"x":"text","f":"Cyan","b":"DarkRed"}, ...]}
+# t is milliseconds since the run started, so a replay can keep the real pacing.
+# {"m":"title"|"phase"|"verdict"} marks let lab.ps1 keep only the part the site shows.
+$script:RecClock = [Diagnostics.Stopwatch]::StartNew()
+$script:RecLine = New-Object System.Collections.ArrayList
+
+# Stands in for Write-Host in every script that dot-sources this file: prints as
+# normal, and records the text and colours when BRB_RECORD is set.
+function Write-Host {
+  param([Parameter(Position = 0, ValueFromRemainingArguments = $true)]$Object,
+        [switch]$NoNewline, $ForegroundColor, $BackgroundColor, $Separator)
+  Microsoft.PowerShell.Utility\Write-Host @PSBoundParameters
+  if ($env:BRB_RECORD) { Add-RecordText "$Object" $ForegroundColor $BackgroundColor (-not $NoNewline) }
+}
+
+function Add-RecordText($Text, $Fg, $Bg, $EndLine) {
+  $parts = @($Text -split "`r?`n")
+  for ($i = 0; $i -lt $parts.Count; $i++) {
+    if ($parts[$i]) {
+      $seg = [ordered]@{ x = $parts[$i] }
+      if ($Fg) { $seg.f = "$Fg" }
+      if ($Bg) { $seg.b = "$Bg" }
+      [void]$script:RecLine.Add($seg)
+    }
+    if ($i -lt $parts.Count - 1) { Save-RecordLine }
+  }
+  if ($EndLine) { Save-RecordLine }
+}
+
+function Save-RecordLine {
+  Add-RecordEntry ([ordered]@{ t = $script:RecClock.ElapsedMilliseconds; s = @($script:RecLine) })
+  $script:RecLine.Clear()
+}
+
+function Add-RecordMark($Name) {
+  if ($env:BRB_RECORD) { Add-RecordEntry ([ordered]@{ m = $Name; t = $script:RecClock.ElapsedMilliseconds }) }
+}
+
+function Add-RecordEntry($Entry) {
+  [IO.File]::AppendAllText($env:BRB_RECORD, ($Entry | ConvertTo-Json -Compress -Depth 5) + "`n", (New-Object Text.UTF8Encoding $false))
+}
+
 # --- Output helpers --------------------------------------------------------------
 # One colour scheme for every exercise: labels dim, keys yellow, limits and money
 # magenta, requests cyan, prompts white, answers cyan, OK green, BLOCKED yellow.
@@ -70,6 +115,7 @@ function Write-Line {
 # Usable line width: the console's, capped at 120 so long text stays readable.
 # 120 when there's no console to ask (output redirected).
 function Get-LineWidth {
+  if ($env:BRB_RECORD) { return 120 }   # recordings wrap the same whatever the window size
   $w = 0
   try { $w = $Host.UI.RawUI.WindowSize.Width } catch {}
   if (-not $w -or $w -lt 60) { $w = 121 }
@@ -113,6 +159,7 @@ function Write-Title($Title, $Tag) {
   Write-Host $rule -ForegroundColor DarkGray
   Write-Line "  $Title" White "   $Tag" DarkGray
   Write-Host $rule -ForegroundColor DarkGray
+  Add-RecordMark "title"
 }
 
 # A labelled paragraph (Threat, Control, ...). Later lines of $Text are indented under the first.
@@ -212,6 +259,7 @@ function Write-Phase([ValidateSet("Baseline", "Red Team", "Blue Team")]$Phase, $
   # Baseline is black on light grey: some terminal themes draw DarkGray as near-white,
   # which made white-on-DarkGray unreadable.
   $badge, $accent, $ink = @{ "Baseline" = "Gray", "Gray", "Black"; "Red Team" = "DarkRed", "Red", "White"; "Blue Team" = "DarkBlue", "Blue", "White" }[$Phase]
+  Add-RecordMark "phase"
   Write-Badge $Phase.ToUpper() $badge $Text $accent $ink
 }
 
@@ -231,6 +279,7 @@ function Write-Badge($Label, $Background, $Text, $Colour, $Ink = "White") {
 function Write-Verdict($Passed, $Text) {
   if ($Passed) { Write-Badge "PASS" DarkGreen $Text Green }
   else         { Write-Badge "FAIL" DarkRed $Text Red }
+  Add-RecordMark "verdict"
 }
 
 # One attack in a run, for lessons that judge success by a canary in the reply:

@@ -133,24 +133,26 @@ a.card:hover { border-color: var(--accent); }
 /* Hidden lines keep their space, so the terminal doesn't grow and push the page around. */
 .terminal pre > span.hidden { visibility: hidden; }
 
-/* Same colour scheme as the PowerShell scripts (exercises/_lib/common.ps1). */
-.k-dim   { color: var(--term-dim); }
-.k-white { color: var(--term-white); }
-.k-yel   { color: #f2d24b; }
-.k-mag   { color: #d68cf0; }
-.k-cyan  { color: #5fd7e6; }
-.k-teal  { color: #3aa6b0; }
-.k-ok    { color: var(--term-green); }
-.k-warn  { color: var(--term-amber); }
-.k-err   { color: #c9a04a; }
-.k-red   { color: var(--term-red); }
-.k-blue  { color: var(--term-blue); }
-.badge   { font-weight: 700; }
-.b-base  { background: #c0c0c0; color: #000; }
-.b-red   { background: #8b1a14; color: #fff; }
-.b-blue  { background: #1f3fa8; color: #fff; }
-.b-res   { background: #0e6b73; color: #fff; }
-.b-pass  { background: #1a6b3a; color: #fff; }
+/* The 16 Windows console colours, as recorded by lab.ps1 -Record:
+   f-<Colour> is the text colour, b-<Colour> the background. */
+.f-Black { color: #0c0c0c; }       .b-Black { background: #0c0c0c; }
+.f-DarkBlue { color: #3b6fd8; }    .b-DarkBlue { background: #1f3fa8; }
+.f-DarkGreen { color: #2e9e5b; }   .b-DarkGreen { background: #1a6b3a; }
+.f-DarkCyan { color: #3aa6b0; }    .b-DarkCyan { background: #0e6b73; }
+.f-DarkRed { color: #d0443a; }     .b-DarkRed { background: #8b1a14; }
+.f-DarkMagenta { color: #b25ec4; } .b-DarkMagenta { background: #6b1f73; }
+.f-DarkYellow { color: #c9a04a; }  .b-DarkYellow { background: #7a5a12; }
+.f-Gray { color: var(--term-text); } .b-Gray { background: #c0c0c0; }
+.f-DarkGray { color: var(--term-dim); } .b-DarkGray { background: #4a4e57; }
+.f-Blue { color: var(--term-blue); }  .b-Blue { background: #3b78ff; }
+.f-Green { color: var(--term-green); } .b-Green { background: #16c60c; }
+.f-Cyan { color: #5fd7e6; }        .b-Cyan { background: #61d6d6; }
+.f-Red { color: var(--term-red); }  .b-Red { background: #e74856; }
+.f-Magenta { color: #d68cf0; }     .b-Magenta { background: #b4009e; }
+.f-Yellow { color: #f2d24b; }      .b-Yellow { background: #f9f1a5; }
+.f-White { color: var(--term-white); } .b-White { background: #f2f2f2; }
+/* Badges (text on a background) are bold, as they read in the terminal. */
+.terminal pre span[class*=" b-"] { font-weight: 700; }
 .t-dim { color: var(--term-dim); }
 .t-title { color: var(--term-white); font-weight: 700; }
 .t-base { color: var(--term-text); font-weight: 700; }

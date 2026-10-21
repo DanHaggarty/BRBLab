@@ -276,10 +276,10 @@ never lands in shell history.
    output must tell the story without the README.
 4. Write `README.md` (sections above). Paste real output into *What we observed*.
 5. Add the lesson to the table in the root `README.md` and in `docs/DESIGN.md`.
-6. Add the site page: copy a page in `site/lessons/`, paste the real run into
-   the terminal block (one `<span>` per line; classes `t-title`, `t-base`,
-   `t-red`, `t-blue`, `call`, `t-warn`, `t-pass`; HTML-escape `<`, `>`, `&`;
-   **replace the master key with `sk-*************  (redacted)`**). After
+6. Add the site page: copy a page in `site/lessons/` to `NN-<name>.html`,
+   rewrite its prose, then record the terminal with
+   `powershell -ExecutionPolicy Bypass -File .\lab.ps1 -Record NN`. Never
+   hand-write or hand-edit the transcript (see *Site recordings*). After
    *Limits of the fix*, add *In the real world* (`<div class="realworld">`
    with a `<p class="source">` link) and *Key takeaways*
    (`<ul class="takeaways">`), before *Run it yourself*. Turn the
@@ -289,6 +289,31 @@ never lands in shell history.
 8. Commit. Pushing to `main` republishes the site.
 
 No change to `lab.ps1` is needed: the menu is built from the folders.
+
+## Site recordings
+
+Each lesson page's "Watch it run" terminal is a recording of a real run,
+made by `lab.ps1 -Record NN` (or `-Record all`):
+
+- `common.ps1` replaces `Write-Host` with a wrapper. When `BRB_RECORD` is
+  set, every line printed is also logged with its exact colours and the
+  milliseconds since the run started. Lessons need nothing extra, as long
+  as they print through `Write-Host` (directly or via the helpers).
+- `Add-RecordMark` marks the end of the title (`Write-Title`), each phase
+  (`Write-Phase`) and the verdict (`Write-Verdict`). The page shows the
+  title, then everything from the first phase to the verdict. The intro
+  paragraphs and takeaways are already prose on the page.
+- The recorder writes static HTML between `<!-- recording:start -->` and
+  `<!-- recording:end -->` in `site/lessons/NN-*.html`, and stamps the date
+  in the terminal title bar. Colours map to `f-<Colour>` / `b-<Colour>`
+  classes in `style.css`; `replay.js` replays at the real pace (4x, long
+  waits capped at 2.5 s).
+- Safety: recordings wrap at a fixed 120 columns; the master key's
+  `Hide-Key` form is replaced with `sk-*************  (redacted)`; if the
+  real master-key value appears anywhere, or the run didn't PASS, the page
+  isn't touched.
+- Re-record after any change to a lesson's output or to `common.ps1`, then
+  commit the page. Pushing republishes the site.
 
 ## Security rules
 

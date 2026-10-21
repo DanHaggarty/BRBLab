@@ -37,59 +37,71 @@
   <h2>Watch it run</h2>
   <p>The same burst of eight questions, sent twice: first with the master key, which has no limits, then with a key limited to five requests a minute. Each request asks about the robot or AI in a different film, so you can follow every call.</p>
   <div class="terminal">
-    <div class="terminal-bar"><span class="dots"><i></i><i></i><i></i></span><span class="terminal-title">exercises\01-llm10-all-you-can-eat\run.ps1</span><button type="button">Replay</button></div>
-<pre><span class="k-dim">==============================================================================</span>
-<span><span class="k-white">  01 - All You Can Eat</span><span class="k-dim">   OWASP LLM10: Unbounded Consumption</span></span>
-<span class="k-dim">==============================================================================</span>
-<span> </span>
-<span class="t-base"><span class="badge b-base"> BASELINE </span>  one normal request with a rate-limited key</span>
-<span> </span>
-<span><span class="k-dim">   request   </span><span class="k-cyan">POST /v1/chat/completions</span><span class="k-teal">  (model=qwen, max_tokens=10)</span></span>
-<span><span class="k-dim">   prompt    </span><span class="k-white">&quot;Who is the robot or AI in the film &#39;2001: A Space Odyssey&#39;? Reply with the name only.&quot;</span></span>
-<span> </span>
-<span class="call"><span class="k-dim">     </span><span class="k-ok">OK       </span><span class="k-dim"> 13.8s  </span><span class="k-white">2001: A Space Odyssey </span><span class="k-dim"> -&gt; </span><span class="k-cyan">HAL 9000     </span><span class="k-mag"></span></span>
-<span> </span>
-<span class="t-red"><span class="badge b-red"> RED TEAM </span>  8-request burst with the master key (no limits)</span>
-<span> </span>
-<span><span class="k-dim">   key       </span><span class="k-yel">sk-*************  (redacted)</span></span>
-<span><span class="k-dim">   made by   </span>no API call - it&#39;s the LITELLM_MASTER_KEY=... line in .env, loaded when LiteLLM starts</span>
-<span><span class="k-dim">   limits    </span><span class="k-mag">none - any model, no rate limit, no budget</span></span>
-<span><span class="k-dim">   request   </span><span class="k-cyan">POST /v1/chat/completions</span><span class="k-teal">  (model=qwen, max_tokens=10)</span></span>
-<span><span class="k-dim">   prompt    </span><span class="k-white">&quot;Who is the robot or AI in the film &#39;&lt;film&gt;&#39;? Reply with the name only.&quot;</span></span>
-<span> </span>
-<span class="call"><span class="k-dim">   1 </span><span class="k-ok">OK       </span><span class="k-dim">  1.3s  </span><span class="k-white">2001: A Space Odyssey </span><span class="k-dim"> -&gt; </span><span class="k-cyan">HAL 9000     </span><span class="k-mag"></span></span>
-<span class="call"><span class="k-dim">   2 </span><span class="k-ok">OK       </span><span class="k-dim">  1.8s  </span><span class="k-white">Star Wars             </span><span class="k-dim"> -&gt; </span><span class="k-cyan">R2-D2        </span><span class="k-mag"></span></span>
-<span class="call"><span class="k-dim">   3 </span><span class="k-ok">OK       </span><span class="k-dim">  1.6s  </span><span class="k-white">Interstellar          </span><span class="k-dim"> -&gt; </span><span class="k-cyan">TARS         </span><span class="k-mag"></span></span>
-<span class="call"><span class="k-dim">   4 </span><span class="k-ok">OK       </span><span class="k-dim">  1.7s  </span><span class="k-white">Iron Man              </span><span class="k-dim"> -&gt; </span><span class="k-cyan">JARVIS       </span><span class="k-mag"></span></span>
-<span class="call"><span class="k-dim">   5 </span><span class="k-ok">OK       </span><span class="k-dim">  1.7s  </span><span class="k-white">WALL-E                </span><span class="k-dim"> -&gt; </span><span class="k-cyan">WALL-E       </span><span class="k-mag"></span></span>
-<span class="call"><span class="k-dim">   6 </span><span class="k-ok">OK       </span><span class="k-dim">  1.4s  </span><span class="k-white">Big Hero 6            </span><span class="k-dim"> -&gt; </span><span class="k-cyan">Baymax       </span><span class="k-mag"></span></span>
-<span class="call"><span class="k-dim">   7 </span><span class="k-ok">OK       </span><span class="k-dim">  1.5s  </span><span class="k-white">Short Circuit         </span><span class="k-dim"> -&gt; </span><span class="k-cyan">Number Five  </span><span class="k-mag"></span></span>
-<span class="call"><span class="k-dim">   8 </span><span class="k-ok">OK       </span><span class="k-dim">  1.3s  </span><span class="k-white">Alien                 </span><span class="k-dim"> -&gt; </span><span class="k-cyan">Ash          </span><span class="k-mag"></span></span>
-<span> </span>
-<span class="t-blue"><span class="badge b-blue"> BLUE TEAM </span>  same burst with a fresh key, rpm_limit=5</span>
-<span> </span>
-<span><span class="k-dim">   key       </span><span class="k-yel">sk-FI****************wn1w</span></span>
-<span><span class="k-dim">   made by   </span>Invoke-RestMethod http://127.0.0.1:4000/key/generate -Method Post -Headers @{ Authorization = &quot;Bearer &lt;master key&gt;&quot; } -ContentType &#39;application/json&#39; -Body &#39;{&quot;key_alias&quot;:&quot;ex01-blue-224735&quot;,&quot;models&quot;:[&quot;qwen&quot;],&quot;rpm_limit&quot;:5}&#39;</span>
-<span><span class="k-dim">   limits    </span><span class="k-mag">models=qwen, rpm_limit=5</span></span>
-<span><span class="k-dim">   request   </span><span class="k-cyan">POST /v1/chat/completions</span><span class="k-teal">  (model=qwen, max_tokens=10)</span></span>
-<span><span class="k-dim">   prompt    </span><span class="k-white">&quot;Who is the robot or AI in the film &#39;&lt;film&gt;&#39;? Reply with the name only.&quot;</span></span>
-<span> </span>
-<span class="call"><span class="k-dim">   1 </span><span class="k-ok">OK       </span><span class="k-dim">  2.5s  </span><span class="k-white">2001: A Space Odyssey </span><span class="k-dim"> -&gt; </span><span class="k-cyan">HAL 9000     </span><span class="k-mag"></span></span>
-<span class="call"><span class="k-dim">   2 </span><span class="k-ok">OK       </span><span class="k-dim">  1.8s  </span><span class="k-white">Star Wars             </span><span class="k-dim"> -&gt; </span><span class="k-cyan">R2-D2        </span><span class="k-mag"></span></span>
-<span class="call"><span class="k-dim">   3 </span><span class="k-ok">OK       </span><span class="k-dim">  1.5s  </span><span class="k-white">Interstellar          </span><span class="k-dim"> -&gt; </span><span class="k-cyan">TARS         </span><span class="k-mag"></span></span>
-<span class="call"><span class="k-dim">   4 </span><span class="k-ok">OK       </span><span class="k-dim">  2.3s  </span><span class="k-white">Iron Man              </span><span class="k-dim"> -&gt; </span><span class="k-cyan">J.A.R.V.I.S. </span><span class="k-mag"></span></span>
-<span class="call"><span class="k-dim">   5 </span><span class="k-ok">OK       </span><span class="k-dim">  1.7s  </span><span class="k-white">WALL-E                </span><span class="k-dim"> -&gt; </span><span class="k-cyan">WALL-E       </span><span class="k-mag"></span></span>
-<span class="t-warn"><span class="k-dim">   6 </span><span class="k-warn">BLOCKED  </span><span class="k-warn">429     </span><span class="k-white">Big Hero 6            </span><span class="k-dim"> -&gt; </span><span class="k-err">Rate limit exceeded for api_key: 02e6704302...de9e. Limit type: requests. Current limit: 5, Remaining: 0.</span></span>
-<span class="t-warn"><span class="k-dim">   7 </span><span class="k-warn">BLOCKED  </span><span class="k-warn">429     </span><span class="k-white">Short Circuit         </span><span class="k-dim"> -&gt; </span><span class="k-err">Rate limit exceeded for api_key: 02e6704302...de9e. Limit type: requests. Current limit: 5, Remaining: 0.</span></span>
-<span class="t-warn"><span class="k-dim">   8 </span><span class="k-warn">BLOCKED  </span><span class="k-warn">429     </span><span class="k-white">Alien                 </span><span class="k-dim"> -&gt; </span><span class="k-err">Rate limit exceeded for api_key: 02e6704302...de9e. Limit type: requests. Current limit: 5, Remaining: 0.</span></span>
-<span> </span>
-<span class="t-res"><span class="badge b-res"> RESULTS </span></span>
-<span> </span>
-<span><span class="k-dim">   Baseline  </span><span class="k-ok">OK - the limit didn&#39;t get in the way</span></span>
-<span><span class="k-dim">   Red Team  </span><span class="k-warn">8/8 got through - nothing limited the master key</span></span>
-<span><span class="k-dim">   Blue Team </span><span class="k-cyan">5/8 got through, 3 refused with 429 before reaching the model</span></span>
-<span> </span>
-<span class="t-pass"><span class="badge b-pass"> PASS </span>  rate limit enforced at the gateway</span></pre>
+    <div class="terminal-bar"><span class="dots"><i></i><i></i><i></i></span><span class="terminal-title">exercises\01-llm10-all-you-can-eat\run.ps1 &#183; recorded 2026-10-21</span><button type="button">Replay</button></div>
+<!-- recording:start - written by lab.ps1 -Record, don't edit by hand -->
+<pre data-recorded="2026-10-21"><span data-t="0"> </span>
+<span data-t="51"><span class="f-DarkGray">==============================================================================</span></span>
+<span data-t="76"><span class="f-White">  01 - All You Can Eat</span><span class="f-DarkGray">   OWASP LLM10: Unbounded Consumption</span></span>
+<span data-t="83"><span class="f-DarkGray">==============================================================================</span></span>
+<span data-t="744"> </span>
+<span data-t="755"><span class="f-Black b-Gray"> BASELINE </span><span class="f-Gray">  one normal request with a rate-limited key</span></span>
+<span data-t="760"> </span>
+<span data-t="790"><span class="f-DarkGray">   request   </span><span class="f-Cyan">POST /v1/chat/completions</span><span class="f-DarkCyan">  (model=qwen, max_tokens=10)</span></span>
+<span data-t="805"><span class="f-DarkGray">   prompt    </span><span class="f-White">&quot;Who is the robot or AI in the film &#39;2001: A Space Odyssey&#39;? Reply with the name only.&quot;</span></span>
+<span data-t="809"> </span>
+<span data-t="25290"><span class="f-DarkGray">     </span><span class="f-Green">OK       </span><span class="f-DarkGray"> 24.4s  </span><span class="f-White">2001: A Space Odyssey </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">HAL 9000     </span></span>
+<span data-t="25305"> </span>
+<span data-t="25326"><span class="f-White b-DarkRed"> RED TEAM </span><span class="f-Red">  8-request burst with the master key (no limits)</span></span>
+<span data-t="25331"> </span>
+<span data-t="25362"><span class="f-DarkGray">   key       </span><span class="f-Yellow">sk-*************  (redacted)</span></span>
+<span data-t="25371"><span class="f-DarkGray">   made by   </span><span class="f-Gray">no API call - it&#39;s the LITELLM_MASTER_KEY=... line in .env, loaded when LiteLLM starts</span></span>
+<span data-t="25378"><span class="f-DarkGray">   limits    </span><span class="f-Magenta">none - any model, no rate limit, no budget</span></span>
+<span data-t="25391"><span class="f-DarkGray">   request   </span><span class="f-Cyan">POST /v1/chat/completions</span><span class="f-DarkCyan">  (model=qwen, max_tokens=10)</span></span>
+<span data-t="25401"><span class="f-DarkGray">   prompt    </span><span class="f-White">&quot;Who is the robot or AI in the film &#39;&lt;film&gt;&#39;? Reply with the name only.&quot;</span></span>
+<span data-t="25406"> </span>
+<span data-t="27248"><span class="f-DarkGray">   1 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  1.8s  </span><span class="f-White">2001: A Space Odyssey </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">HAL 9000     </span></span>
+<span data-t="29934"><span class="f-DarkGray">   2 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.6s  </span><span class="f-White">Star Wars             </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">R2-D2        </span></span>
+<span data-t="32117"><span class="f-DarkGray">   3 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.2s  </span><span class="f-White">Interstellar          </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">TARS         </span></span>
+<span data-t="35610"><span class="f-DarkGray">   4 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  3.5s  </span><span class="f-White">Iron Man              </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">J.A.R.V.I.S. </span></span>
+<span data-t="38242"><span class="f-DarkGray">   5 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.6s  </span><span class="f-White">WALL-E                </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">WALL-E       </span></span>
+<span data-t="40305"><span class="f-DarkGray">   6 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.0s  </span><span class="f-White">Big Hero 6            </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">Baymax       </span></span>
+<span data-t="42747"><span class="f-DarkGray">   7 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.4s  </span><span class="f-White">Short Circuit         </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">Number 5     </span></span>
+<span data-t="44770"><span class="f-DarkGray">   8 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.0s  </span><span class="f-White">Alien                 </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">Ash          </span></span>
+<span data-t="44782"> </span>
+<span data-t="44792"><span class="f-White b-DarkBlue"> BLUE TEAM </span><span class="f-Blue">  same burst with a fresh key, rpm_limit=5</span></span>
+<span data-t="44797"> </span>
+<span data-t="44809"><span class="f-DarkGray">   key       </span><span class="f-Yellow">sk-pJ****************TOdA</span></span>
+<span data-t="44818"><span class="f-DarkGray">   made by   </span><span class="f-Gray">Invoke-RestMethod http://127.0.0.1:4000/key/generate -Method Post -Headers @{ Authorization = &quot;Bearer</span></span>
+<span data-t="44824"><span class="f-Gray">             &lt;master key&gt;&quot; } -ContentType &#39;application/json&#39; -Body</span></span>
+<span data-t="44830"><span class="f-Gray">             &#39;{&quot;key_alias&quot;:&quot;ex01-blue-124748&quot;,&quot;models&quot;:[&quot;qwen&quot;],&quot;rpm_limit&quot;:5}&#39;</span></span>
+<span data-t="44839"><span class="f-DarkGray">   limits    </span><span class="f-Magenta">models=qwen, rpm_limit=5</span></span>
+<span data-t="44854"><span class="f-DarkGray">   request   </span><span class="f-Cyan">POST /v1/chat/completions</span><span class="f-DarkCyan">  (model=qwen, max_tokens=10)</span></span>
+<span data-t="44864"><span class="f-DarkGray">   prompt    </span><span class="f-White">&quot;Who is the robot or AI in the film &#39;&lt;film&gt;&#39;? Reply with the name only.&quot;</span></span>
+<span data-t="44870"> </span>
+<span data-t="48446"><span class="f-DarkGray">   1 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  3.5s  </span><span class="f-White">2001: A Space Odyssey </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">HAL 9000     </span></span>
+<span data-t="51089"><span class="f-DarkGray">   2 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.6s  </span><span class="f-White">Star Wars             </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">R2-D2        </span></span>
+<span data-t="53306"><span class="f-DarkGray">   3 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.2s  </span><span class="f-White">Interstellar          </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">TARS         </span></span>
+<span data-t="55759"><span class="f-DarkGray">   4 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.4s  </span><span class="f-White">Iron Man              </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">JARVIS       </span></span>
+<span data-t="58374"><span class="f-DarkGray">   5 </span><span class="f-Green">OK       </span><span class="f-DarkGray">  2.6s  </span><span class="f-White">WALL-E                </span><span class="f-DarkGray"> -&gt; </span><span class="f-Cyan">WALL-E       </span></span>
+<span data-t="58577"><span class="f-DarkGray">   6 </span><span class="f-Yellow">BLOCKED  </span><span class="f-Yellow">429     </span><span class="f-White">Big Hero 6            </span><span class="f-DarkGray"> -&gt; </span><span class="f-DarkYellow">Rate limit exceeded for api_key: 9253438f58...7b88. Limit type:</span></span>
+<span data-t="58581"><span class="f-DarkYellow">                                                requests. Current limit: 5, Remaining: 0. Limit resets at: 2026-10-21</span></span>
+<span data-t="58585"><span class="f-DarkYellow">                                                10:49:45 UTC</span></span>
+<span data-t="58625"><span class="f-DarkGray">   7 </span><span class="f-Yellow">BLOCKED  </span><span class="f-Yellow">429     </span><span class="f-White">Short Circuit         </span><span class="f-DarkGray"> -&gt; </span><span class="f-DarkYellow">Rate limit exceeded for api_key: 9253438f58...7b88. Limit type:</span></span>
+<span data-t="58629"><span class="f-DarkYellow">                                                requests. Current limit: 5, Remaining: 0. Limit resets at: 2026-10-21</span></span>
+<span data-t="58633"><span class="f-DarkYellow">                                                10:49:46 UTC</span></span>
+<span data-t="58687"><span class="f-DarkGray">   8 </span><span class="f-Yellow">BLOCKED  </span><span class="f-Yellow">429     </span><span class="f-White">Alien                 </span><span class="f-DarkGray"> -&gt; </span><span class="f-DarkYellow">Rate limit exceeded for api_key: 9253438f58...7b88. Limit type:</span></span>
+<span data-t="58691"><span class="f-DarkYellow">                                                requests. Current limit: 5, Remaining: 0. Limit resets at: 2026-10-21</span></span>
+<span data-t="58694"><span class="f-DarkYellow">                                                10:49:46 UTC</span></span>
+<span data-t="58831"> </span>
+<span data-t="58839"><span class="f-White b-DarkCyan"> RESULTS </span><span class="f-Cyan">  </span></span>
+<span data-t="58843"> </span>
+<span data-t="58905"><span class="f-DarkGray">   Baseline  </span><span class="f-Green">OK - the limit didn&#39;t get in the way</span></span>
+<span data-t="58912"><span class="f-DarkGray">   Red Team  </span><span class="f-Yellow">8/8 got through - nothing limited the master key</span></span>
+<span data-t="58924"><span class="f-DarkGray">   Blue Team </span><span class="f-Cyan">5/8 got through, 3 refused with 429 before reaching the model</span></span>
+<span data-t="58935"> </span>
+<span data-t="58942"><span class="f-White b-DarkGreen"> PASS </span><span class="f-Green">  rate limit enforced at the gateway</span></span>
+<span data-t="58945"> </span></pre>
+<!-- recording:end -->
   </div>
   <p class="caption">Recorded on a CPU-only Windows PC: Ollama with qwen2.5:7b behind a LiteLLM gateway. Timings are real; the first call includes loading the model.</p>
 
