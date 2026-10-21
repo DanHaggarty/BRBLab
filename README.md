@@ -186,3 +186,12 @@ docs/LAB_NOTES.md     build log and results
 LLM03 (Supply Chain), LLM04 (training-time Data/Model Poisoning), LLM08
 (Vector/Embedding Weaknesses as a standalone category) and LLM09
 (Misinformation) aren't exercised here. See `docs/DESIGN.md` §10 for why.
+
+## Licence
+
+Free for personal, educational and other non-commercial use, with credit:
+the code is under the [PolyForm Noncommercial License 1.0.0](LICENSE.md) and
+the lesson content under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/).
+Commercial use, such as staff training at a company or a paid course built
+on BRB Lab, needs a separate licence: get in touch via
+[GitHub](https://github.com/DanHaggarty).

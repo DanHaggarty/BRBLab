@@ -320,7 +320,12 @@ made by `lab.ps1 -Record NN` (or `-Record all`):
 - **Never print, log, commit or paste the master key.** Display only via
   `Hide-Key`; the site shows it as `sk-*************  (redacted)`. Temporary
   virtual keys may appear redacted; they're deleted at the end of each run.
+- **The repo is public** (code under PolyForm Noncommercial, lesson content
+  under CC BY-NC; see `LICENSE.md`). Everything committed is world-readable,
+  forever, including history.
 - `.env` and `data/` are gitignored. Check `git status` before committing.
+- Commit as the GitHub noreply address
+  (`214815794+DanHaggarty@users.noreply.github.com`), never a personal email.
 - Every service binds to `127.0.0.1`. The lab is intentionally vulnerable.
 - Key hashes in LiteLLM errors aren't secrets, but show them shortened
   (`Invoke-Lab` does this).
