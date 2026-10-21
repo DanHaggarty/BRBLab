@@ -121,7 +121,7 @@ $h = @{ Authorization = "Bearer <your LITELLM_MASTER_KEY>" }
 | 01 | [**All You Can Eat**](exercises/01-llm10-all-you-can-eat/) | LLM10 | One caller floods the model | Per-key rate limit (`rpm_limit`) | ✅ |
 | 02 | [**Backstage Pass**](exercises/02-backstage-pass/) | LLM10 (access controls) | An over-privileged key reaches every model | Per-key model allowlist | ✅ |
 | 03 | [**Denial of Wallet**](exercises/03-llm10-denial-of-wallet/) | LLM10 | Unbounded spend | Per-key `max_budget` | ✅ |
-| 04 | **Simon Says** | LLM01 | Prompt injection, direct and hidden in documents | Untrusted-content delimiters, instruction hierarchy | planned |
+| 04 | [**Simon Says**](exercises/04-llm01-simon-says/) | LLM01 | Instructions hidden in a document hijack a summariser | Fence untrusted text, escape the fence, instructions last | ✅ |
 | 05 | **Loose Lips** | LLM07 | The bot recites its system prompt and its secret | Keep secrets out of prompts; output scanning | planned |
 | 06 | **Overshare** | LLM02 | A crafted question pulls out salary data | Restricted-content tagging + retrieval filtering | planned |
 | 07 | **You've Got Mail** | LLM06 | A poisoned document makes the bot email an attacker | Human confirmation + recipient allowlist | planned |

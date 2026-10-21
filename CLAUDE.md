@@ -166,9 +166,11 @@ lesson's control would have changed it. Single-quoted here-string, so $ is liter
 | `Write-Request $Path $Body` | Shows request and prompt/input, then **pauses before sending**. Call it before the first model call of every phase. |
 | `Write-Call $n $Result $Asked $Answer [$Extra]` | One line per request: OK/BLOCKED, time, question, answer, optional extra (e.g. spend). |
 | `Write-Field $Label $Value $Colour` | Dim label + coloured value. |
-| `Write-Line text colour text colour ...` | Free-form coloured line when nothing above fits. |
+| `Write-Line text colour text colour ...` | Free-form coloured line when nothing above fits. Doesn't wrap: keep it short. |
+| `Write-Wrapped $Text $Colour $Indent` | Finishes a line whose text may be long: word-wraps it to the console width (max 120), with later lines indented to `$Indent`. Use after `Write-Host ... -NoNewline` prefixes. `Write-Field` and `Write-Section` already wrap at column 13. |
 | `Write-Results`, `Write-Verdict $Passed $Text` | Results badge (pauses first), then PASS/FAIL badge. |
-| `Write-Takeaways $RealWorld $Points` | Last thing a lesson prints: pauses, TAKEAWAYS badge, the real-world incident, then one bullet per takeaway. |
+| `Write-Attack $n $Result $Label $Landed [$Canary]` | One line per attack for lessons judged by a canary in the reply: LANDED (red) / RESISTED (green), time, attack name, reply excerpt. If the canary is past the cut-off, the excerpt jumps to it. `$Landed = $null` prints plain OK (for Baseline). |
+| `Write-Takeaways $RealWorld $Points` | Last thing a lesson prints: pauses, TAKEAWAYS badge, the incident, then one bullet per takeaway. |
 | `Wait-Continue $Next` | Extra pause if a lesson needs one. Skipped automatically when input is redirected or `BRB_NO_PAUSE` is set. |
 | `Hide-Key $Key` | Redaction used by the key helpers. |
 
@@ -204,7 +206,28 @@ Every lesson closes the same way, in all three places (`run.ps1`,
 
 Incidents used so far, so new lessons don't repeat them: Sourcegraph token
 leak, Aug 2023 (01); Sysdig LLMjacking, May 2024 (02, 03); Microsoft
-Storm-2139, Dec 2024 (03).
+Storm-2139, Dec 2024 (03); EchoLeak, Microsoft 365 Copilot, Jun 2025 (04).
+
+### Lessons where the model is the target (LLM01, 02, 05, 06, 07)
+
+Gateway lessons get a clean 200/403/429 from LiteLLM. Lessons that attack
+the model's behaviour don't, so (lesson 04 sets the pattern):
+
+- **Judge by a canary, never by reading the reply.** The attack asks for a
+  marker (`PWNED-7731`); its presence in the reply means the attack landed.
+  Match a prefix (`PWNED`) so a reply cut off by `max_tokens` still counts.
+- **Make runs repeatable:** `temperature = 0`, `seed = 42`.
+- **Several attack variants, one per line** (like the films), so the reader
+  sees which techniques land. Eight is a good number.
+- **PASS is a threshold, not zero.** E.g. Red Team lands at least 6/8 and
+  Blue Team at most 2/8. Say which ones still got through; that's the
+  lesson's *Limits of the fix*.
+- **Probe before you build.** Run every variant against both prompts with a
+  throwaway script first. If the model doesn't fall for Red Team, or the
+  control doesn't move the number, change the design before writing the
+  lesson, and record what you tried in *What's happening*.
+- Calls with a document in the prompt take ~10-15 s each on CPU; keep a
+  lesson to about 16 model calls.
 
 ### Prompts
 
@@ -300,6 +323,7 @@ No change to `lab.ps1` is needed: the menu is built from the folders.
 - **The Ollama back door.** Calling Ollama directly bypasses every gateway
   control, but on localhost it isn't a realistic attack. Flagged in
   `docs/DESIGN.md` for a future lesson with a realistic network topology.
-- **Lessons 04-08** need the RAG app described in `docs/DESIGN.md`. Build
-  the app first; each vulnerability gets an on/off toggle, and Blue Team is
-  the toggle switched on.
+- **The RAG app** in `docs/DESIGN.md`. Lesson 04 showed a model-behaviour
+  lesson can run as a script-side "app" through the gateway. Before building
+  the RAG app for 05-08, check whether each lesson can do the same; build it
+  only when a lesson genuinely needs retrieval or a browser.

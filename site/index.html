@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BRB Lab: hands-on LLM security labs (OWASP Top 10 for LLMs)</title>
-<meta name="description" content="Break and fix a real LLM gateway. Hands-on Baseline, Red Team and Blue Team lessons for the OWASP Top 10 for LLM Applications: rate limits, model allowlists and spend caps with LiteLLM and Ollama.">
+<meta name="description" content="Break and fix a real LLM gateway. Hands-on Baseline, Red Team and Blue Team lessons for the OWASP Top 10 for LLM Applications: rate limits, model allowlists, spend caps and prompt injection with LiteLLM and Ollama.">
 <link rel="canonical" href="https://danhaggarty.github.io/BRBLab/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="BRB Lab: hands-on LLM security labs">
@@ -58,12 +58,12 @@
       <p>Rate limits don't cap cost. A per-key budget does, and it overshoots by exactly one request.</p>
       <span class="tag">Spend caps</span>
     </a>
-    <div class="card soon">
+    <a class="card" href="lessons/04-simon-says.html">
       <span class="num">04 · OWASP LLM01</span>
       <h3>Simon Says</h3>
-      <p>Prompt injection, typed directly and hidden inside documents.</p>
-      <span class="tag">Coming soon</span>
-    </div>
+      <p>Instructions hidden in a document hijack a summariser 8 times out of 8. One prompt change cuts it to 1, and shows why it isn't 0.</p>
+      <span class="tag">Prompt injection</span>
+    </a>
     <div class="card soon">
       <span class="num">05 · OWASP LLM07</span>
       <h3>Loose Lips</h3>

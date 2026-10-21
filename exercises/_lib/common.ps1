@@ -67,9 +67,44 @@ function Write-Line {
   Write-Host ""
 }
 
-# "   label    value" with a dim label.
+# Usable line width: the console's, capped at 120 so long text stays readable.
+# 120 when there's no console to ask (output redirected).
+function Get-LineWidth {
+  $w = 0
+  try { $w = $Host.UI.RawUI.WindowSize.Width } catch {}
+  if (-not $w -or $w -lt 60) { $w = 121 }
+  [Math]::Min($w - 1, 120)
+}
+
+# Word-wraps $Text into lines of at most $Width characters. Blank lines are kept.
+function Split-Text($Text, $Width) {
+  foreach ($para in @("$Text" -split "`r?`n")) {
+    $line = ""
+    foreach ($word in ($para -split ' ')) {
+      while ($word.Length -gt $Width) {           # a single word longer than a line
+        if ($line) { $line; $line = "" }
+        $word.Substring(0, $Width); $word = $word.Substring($Width)
+      }
+      if (-not $line) { $line = $word }
+      elseif ($line.Length + 1 + $word.Length -le $Width) { $line += " " + $word }
+      else { $line; $line = $word }
+    }
+    $line
+  }
+}
+
+# Writes $Text starting at the cursor's column $Indent, wrapping onto lines
+# indented to the same column, so long values don't wrap back to column 0.
+function Write-Wrapped($Text, $Colour, $Indent) {
+  $lines = @(Split-Text $Text ((Get-LineWidth) - $Indent))
+  Write-Host $lines[0] -ForegroundColor $Colour
+  $lines | Select-Object -Skip 1 | ForEach-Object { Write-Host ((" " * $Indent) + $_) -ForegroundColor $Colour }
+}
+
+# "   label    value" with a dim label. Long values wrap under the value column.
 function Write-Field($Label, $Value, $Colour = "Gray") {
-  Write-Line ("   {0,-10}" -f $Label) DarkGray $Value $Colour
+  Write-Host ("   {0,-10}" -f $Label) -ForegroundColor DarkGray -NoNewline
+  Write-Wrapped $Value $Colour 13
 }
 
 function Write-Title($Title, $Tag) {
@@ -82,9 +117,8 @@ function Write-Title($Title, $Tag) {
 
 # A labelled paragraph (Threat, Control, ...). Later lines of $Text are indented under the first.
 function Write-Section($Label, $Colour, $Text) {
-  $lines = @($Text -split "`r?`n")
-  Write-Line ("   {0,-10}" -f $Label) $Colour $lines[0] Gray
-  $lines | Select-Object -Skip 1 | ForEach-Object { Write-Host ((" " * 13) + $_) -ForegroundColor Gray }
+  Write-Host ("   {0,-10}" -f $Label) -ForegroundColor $Colour -NoNewline
+  Write-Wrapped $Text Gray 13
 }
 
 # One request in a run: number, OK/BLOCKED, time, what was asked, and the answer or refusal.
@@ -93,7 +127,9 @@ function Write-Call($Number, $Result, $Asked, $Answer, $Extra) {
   if ($Result.Ok) {
     Write-Line $n DarkGray "OK       " Green ("{0,5:N1}s  " -f $Result.Seconds) DarkGray ("{0,-22}" -f $Asked) White " -> " DarkGray ("{0,-13}" -f $Answer) Cyan "$Extra" Magenta
   } else {
-    Write-Line $n DarkGray "BLOCKED  " Yellow ("{0,-8}" -f $Result.Status) Yellow ("{0,-22}" -f $Asked) White " -> " DarkGray "$($Result.Error)" DarkYellow
+    Write-Host $n -ForegroundColor DarkGray -NoNewline; Write-Host "BLOCKED  " -ForegroundColor Yellow -NoNewline
+    Write-Host ("{0,-8}" -f $Result.Status) -ForegroundColor Yellow -NoNewline; Write-Host ("{0,-22}" -f $Asked) -ForegroundColor White -NoNewline
+    Write-Host " -> " -ForegroundColor DarkGray -NoNewline; Write-Wrapped "$($Result.Error)" DarkYellow 48
   }
 }
 
@@ -197,11 +233,31 @@ function Write-Verdict($Passed, $Text) {
   else         { Write-Badge "FAIL" DarkRed $Text Red }
 }
 
+# One attack in a run, for lessons that judge success by a canary in the reply:
+# number, LANDED/RESISTED, time, which attack, and the start of the reply.
+# $Canary: if it's past the cut-off, the excerpt jumps to it so the evidence stays visible.
+function Write-Attack($Number, $Result, $Label, $Landed, $Canary) {
+  $n = "{0,4} " -f $Number
+  if (-not $Result.Ok) {
+    Write-Host $n -ForegroundColor DarkGray -NoNewline; Write-Host "ERROR    " -ForegroundColor Yellow -NoNewline
+    Write-Host ("{0,-8}" -f $Result.Status) -ForegroundColor Yellow -NoNewline; Write-Host ("{0,-16}" -f $Label) -ForegroundColor White -NoNewline
+    Write-Host " -> " -ForegroundColor DarkGray -NoNewline; Write-Wrapped "$($Result.Error)" DarkYellow 42
+    return
+  }
+  $reply = (Get-Answer $Result) -replace '\s+', ' '
+  $at = if ($Canary) { $reply.IndexOf($Canary.Substring(0, 5)) } else { -1 }
+  if ($at -gt 50) { $reply = $reply.Substring(0, 36).TrimEnd() + " ... " + $reply.Substring($at, [Math]::Min(28, $reply.Length - $at)) }
+  elseif ($reply.Length -gt 72) { $reply = $reply.Substring(0, 69) + "..." }
+  # $Landed = $null for a request with no attack in it (e.g. Baseline): just OK.
+  $word, $colour = if ($null -eq $Landed) { "OK       ", "Green" } elseif ($Landed) { "LANDED   ", "Red" } else { "RESISTED ", "Green" }
+  Write-Line $n DarkGray $word $colour ("{0,5:N1}s  " -f $Result.Seconds) DarkGray ("{0,-16}" -f $Label) White " -> " DarkGray $reply Cyan
+}
+
 # Closes a lesson: a real incident where this control mattered, then the key points.
 function Write-Takeaways($RealWorld, [string[]]$Points) {
   Wait-Continue "the takeaways"
   Write-Badge "TAKEAWAYS" DarkMagenta "" Magenta
-  Write-Section "Real world" Magenta $RealWorld
+  Write-Section "Incident" Magenta $RealWorld
   Write-Host ""
   foreach ($p in $Points) { Write-Line "   * " Magenta $p Gray }
   Write-Host ""

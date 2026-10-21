@@ -158,7 +158,7 @@ labels per lesson:
 | 01 | All You Can Eat | `01-llm10-all-you-can-eat` | LLM10 (built) |
 | 02 | Backstage Pass | `02-backstage-pass` | LLM10 access controls / least privilege (built) |
 | 03 | Denial of Wallet | `03-llm10-denial-of-wallet` | LLM10 (built) |
-| 04 | Simon Says | `04-llm01-simon-says` | LLM01 |
+| 04 | Simon Says | `04-llm01-simon-says` | LLM01 (built, gateway-only: a document summariser in `run.ps1`, no RAG app needed) |
 | 05 | Loose Lips | `05-llm07-loose-lips` | LLM07 |
 | 06 | Overshare | `06-llm02-overshare` | LLM02 |
 | 07 | You've Got Mail | `07-llm06-youve-got-mail` | LLM06 |
@@ -300,7 +300,8 @@ brb-lab/
     01-llm10-all-you-can-eat/        (built)
     02-backstage-pass/               (built)
     03-llm10-denial-of-wallet/       (built)
-    04-llm01-simon-says/ ... 08-llm05-ghost-in-the-markup/   (see §4.1)
+    04-llm01-simon-says/             (built)
+    05-llm07-loose-lips/ ... 08-llm05-ghost-in-the-markup/   (see §4.1)
   app/
     main.py            # FastAPI app, routes, CSP middleware
     config.py          # SecurityMode, paths from env

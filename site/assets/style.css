@@ -125,6 +125,8 @@ a.card:hover { border-color: var(--accent); }
 .terminal button { font: 600 12px/1 var(--mono); color: var(--term-text); background: #23262d; border: 1px solid #333842; border-radius: 6px; padding: 6px 10px; cursor: pointer; }
 .terminal button:hover { background: #2c3038; }
 /* white-space: normal drops the newlines between the line spans; each span keeps its own spacing. */
+/* Ligatures would turn -> and <!-- into arrows; show exactly what the terminal printed. */
+.terminal pre, pre.code { font-variant-ligatures: none; }
 .terminal pre { white-space: normal; margin: 0; padding: 14px 16px 18px; font: 13px/1.6 var(--mono); color: var(--term-text); overflow-x: auto; min-height: 120px; }
 /* Each direct child span is one terminal line; spans inside a line colour its parts. */
 .terminal pre > span { display: block; white-space: pre; }

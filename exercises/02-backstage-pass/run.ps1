@@ -17,7 +17,11 @@ $embedBody = '{"model":"embed","input":"hello world"}'
 function Write-Embed($r, [switch]$ShouldBlock) {
   if ($r.Ok -and $ShouldBlock) { Write-Line ("   {0,-10}" -f "result") DarkGray "OK " Red "- SHOULD HAVE BEEN BLOCKED" Red }
   elseif ($r.Ok) { Write-Line ("   {0,-10}" -f "result") DarkGray "OK " Green ("- embedding returned ({0} numbers)" -f $r.Response.data[0].embedding.Count) Gray }
-  else { Write-Line ("   {0,-10}" -f "result") DarkGray "BLOCKED $($r.Status) " Yellow $r.Error DarkYellow }
+  else {
+    Write-Host ("   {0,-10}" -f "result") -ForegroundColor DarkGray -NoNewline
+    Write-Host "BLOCKED $($r.Status) " -ForegroundColor Yellow -NoNewline
+    Write-Wrapped $r.Error DarkYellow 25
+  }
 }
 
 Write-Title "02 - Backstage Pass" "OWASP LLM10: Unbounded Consumption (access controls)"
